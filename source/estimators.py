@@ -47,7 +47,7 @@ class ClassicHistogram(Estimator):
 
         for row in c.execute('SELECT count(*) FROM %s' % (TABLE_NAME, )):
             value = row[0]
-            self.total = value
+            self.total += value
 
         first = True
 
@@ -74,14 +74,14 @@ class ClassicHistogram(Estimator):
 
     def estimate_equal(self, value):
         columns = self.get_columns_for(value)
-        return float((self.eq_histogram[columns[0]] / self.bucket_width))
+        return float((self.eq_histogram[columns[0]] / self.bucket_width)) / self.total
 
     def estimate_greater(self, value):
         columns = self.get_columns_for(value)
         if len(columns) == 1:
-            return self.gt_histogram[columns[0]]
+            return self.gt_histogram[columns[0]] * 100 / self.total
         else:
-            return float((self.gt_histogram[columns[0]] + self.gt_histogram[columns[1]]) / 2)
+            return float((self.gt_histogram[columns[0]] + self.gt_histogram[columns[1]]) / 2) / self.total
 
     def get_columns_for(self, value):
         # si es exactamente min + bucket_width * k va a ser una sola, sino 2 y promedio los valores
@@ -103,7 +103,7 @@ class DistributionSteps(Estimator):
 
         for row in c.execute('SELECT count(*) FROM %s' % (TABLE_NAME, )):
             value = row[0]
-            self.total = value
+            self.total += value
 
         items_per_bucket = int(self.total / self.parameter)
 
@@ -148,7 +148,7 @@ class DistributionSteps(Estimator):
                         k += 1
                     if 0 < bucket and self.histogram[self.parameter] != value:
                         #CASE B2: equal to SEVERAL steps, but NOT FIRST OR LAST
-                        return float(k / self.parameter)
+                        return float(k) / self.parameter
                     else:
                         #CASE C: equal to ONE OR SEVERAL STEPS including FIRST OR LAST
                         return float((k - 0.5) / self.parameter)
@@ -160,9 +160,10 @@ class DistributionSteps(Estimator):
             return self.total
 
         for bucket in xrange(self.parameter+1):
+
             if self.histogram[bucket] > value:
                 #CASE A: between steps
-                return (bucket + 1/3) / self.parameter
+                return (bucket + 1.0/3) / self.parameter
             elif self.histogram[bucket] == value:
                 #CASE B/C: equal to steps
                 if 0 < bucket < self.parameter and self.histogram[bucket+1] != value:
@@ -180,7 +181,7 @@ class DistributionSteps(Estimator):
                         return 1 - (k - 0.5) / self.parameter
 
     def estimate_greater(self, value):
-        return self.total - self.estimate_equal(value) - self.estimate_lower(value)
+        return 1 - self.estimate_equal(value) - self.estimate_lower(value)
 
 
 class EstimadorGrupo(Estimator):
