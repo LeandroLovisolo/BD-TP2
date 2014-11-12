@@ -49,15 +49,15 @@ class ClassicHistogram(Estimator):
             value = row[0]
             self.total += value
 
-        first = True
-
         c = self.conn.cursor()
-        for row in c.execute('SELECT %s FROM %s ORDER BY %s ASC' % (self.column, TABLE_NAME, self.column)):
+        for row in c.execute('SELECT MAX(%s) FROM %s' % (self.column, TABLE_NAME)):
             value = row[0]
             self.max_val = value
-            if first:
-                self.min_val = value
-                first = False
+
+        c = self.conn.cursor()
+        for row in c.execute('SELECT MIN(%s) FROM %s' % (self.column, TABLE_NAME)):
+            value = row[0]
+            self.min_val = value
 
         val_range = self.max_val - self.min_val
 
@@ -125,7 +125,6 @@ class DistributionSteps(Estimator):
             items_in_current_bucket += 1
         current_bucket += 1
         self.histogram[current_bucket] = value
-        print 'end'
 
     def estimate_equal(self, value):
         if value < self.histogram[0]:
@@ -184,12 +183,111 @@ class DistributionSteps(Estimator):
         return 1 - self.estimate_equal(value) - self.estimate_lower(value)
 
 
-class EstimadorGrupo(Estimator):
+# noinspection PyArgumentList
+class EstimadorGrupo(DistributionSteps):
+
     def build_struct(self):
-        pass
+        super(EstimadorGrupo, self).build_struct()
+        c = self.conn.cursor()
+        for row in c.execute('SELECT MAX(%s) FROM %s' % (self.column, TABLE_NAME)):
+            value = row[0]
+            self.max_val = value
+
+        c = self.conn.cursor()
+        for row in c.execute('SELECT MIN(%s) FROM %s' % (self.column, TABLE_NAME)):
+            value = row[0]
+            self.min_val = value
+
+    def range(self):
+        return self.max_val - self.min_val
 
     def estimate_equal(self, value):
-        pass
+        if value < self.histogram[0]:
+            return 0
+        if value > self.histogram[self.parameter]:
+            return 0
+
+        for bucket in xrange(self.parameter+1):
+            if self.histogram[bucket] > value:
+                #CASE A: between steps
+                return 1.0 / self.range()
+            elif self.histogram[bucket] == value:
+                #CASE B/C: equal to steps
+                if 0 < bucket < self.parameter and self.histogram[bucket+1] != value:
+                    #CASE B1: equal to ONE step and it's NOT FIRST OR LAST
+                    return 1.0 / self.total
+                else:
+                    k = 0
+                    while self.histogram[bucket+k+1] == value:
+                        k += 1
+                    if 0 < bucket and self.histogram[self.parameter] != value:
+                        #CASE B2: equal to SEVERAL steps, but NOT FIRST OR LAST
+                        return float(k) / self.parameter
+                    else:
+                        #CASE C: equal to ONE OR SEVERAL STEPS including FIRST OR LAST
+                        return float((k - 0.5) / self.parameter)
+
+    def estimate_lower(self, value):
+        if value < self.histogram[0]:
+            return 0
+        if value > self.histogram[self.parameter]:
+            return self.total
+
+        for bucket in xrange(self.parameter+1):
+
+            if self.histogram[bucket] > value:
+                #CASE A: between steps
+                return (bucket + 1.0/2) / self.parameter - self.estimate_equal(value) / 2
+            elif self.histogram[bucket] == value:
+                #CASE B/C: equal to steps
+                if 0 < bucket < self.parameter and self.histogram[bucket+1] != value:
+                    #CASE B1: equal to ONE step and it's NOT FIRST OR LAST
+                    return float(bucket) / self.parameter - self.estimate_equal(value) / 2
+                else:
+                    k = 0
+                    while self.histogram[bucket+k+1] == value:
+                        k += 1
+                    if 0 < bucket and self.histogram[self.parameter] != value:
+                        #CASE B2: equal to SEVERAL steps, but NOT FIRST OR LAST
+                        return float(bucket) / self.parameter - self.estimate_equal(value) / 2
+                    else:
+                        #CASE C: equal to ONE OR SEVERAL STEPS including FIRST OR LAST
+                        return 1 - float(k) / self.parameter - self.estimate_equal(value) / 2
+
+
+class GroundTruth(Estimator):
+
+    def build_struct(self):
+        self.connect()
+
+    def estimate_equal(self, value):
+
+        count = 0
+        c = self.conn.cursor()
+        for row in c.execute('SELECT COUNT(%s) FROM %s WHERE %s = %s' % (self.column, TABLE_NAME, self.column, str(value))):
+            value = row[0]
+            count = value
+
+        total = 0
+        c = self.conn.cursor()
+        for row in c.execute('SELECT COUNT(%s) FROM %s' % (self.column, TABLE_NAME)):
+            value = row[0]
+            total = value
+
+        return float(count)/total
 
     def estimate_greater(self, value):
-        pass
+
+        count = 0
+        c = self.conn.cursor()
+        for row in c.execute('SELECT COUNT(%s) FROM %s WHERE %s > %s' % (self.column, TABLE_NAME, self.column, str(value),)):
+            value = row[0]
+            count = value
+
+        total = 0
+        c = self.conn.cursor()
+        for row in c.execute('SELECT COUNT(%s) FROM %s' % (self.column, TABLE_NAME,)):
+            value = row[0]
+            total = value
+
+        return float(count)/total
