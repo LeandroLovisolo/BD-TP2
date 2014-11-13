@@ -92,8 +92,8 @@ class ClassicHistogram(Estimator):
 
 class DistributionSteps(Estimator):
     def build_struct(self):
-        self.num_buckets = self.parameter
-        self.histogram = [0] * (self.num_buckets + 1)
+        self.num_steps = self.parameter
+        self.steps = [0] * (self.num_steps + 1)
 
         self.connect()
         c = self.conn.cursor()
@@ -101,75 +101,74 @@ class DistributionSteps(Estimator):
         c.execute('SELECT COUNT(*) FROM %s' % self.table)
         self.total = c.fetchone()[0]
 
-        items_per_bucket = int(np.ceil(float(self.total) / self.num_buckets))
+        items_per_bucket = int(np.ceil(float(self.total) / self.num_steps))
 
         c.execute('SELECT %s FROM %s ORDER BY %s ASC' % (self.column, self.table, self.column))
 
-        for current_bucket in range(1, self.num_buckets + 1):
-            if current_bucket == self.num_buckets:
+        for current_bucket in range(1, self.num_steps + 1):
+            if current_bucket == self.num_steps:
                 rows = c.fetchall()
             else:
                 rows = c.fetchmany(items_per_bucket)
             if current_bucket == 1:
-                self.histogram[0] = rows[0][0]
-            self.histogram[current_bucket] = rows[-1][0]
+                self.steps[0] = rows[0][0]
+            self.steps[current_bucket] = rows[-1][0]
 
     def estimate_equal(self, value):
-        if value < self.histogram[0]:
+        if value < self.steps[0]:
             return 0
-        if value > self.histogram[self.num_buckets]:
+        if value > self.steps[self.num_steps]:
             return 0
 
-        for bucket in xrange(self.num_buckets+1):
-            if self.histogram[bucket] > value:
-                #CASE A: between steps
-                return 1.0 / (3 * self.num_buckets)
-            elif self.histogram[bucket] == value:
-                #CASE B/C: equal to steps
-                if 0 < bucket < self.num_buckets and self.histogram[bucket+1] != value:
-                    #CASE B1: equal to ONE step and it's NOT FIRST OR LAST
-                    return 1.0 / self.num_buckets
+        for bucket in xrange(self.num_steps + 1):
+            if self.steps[bucket] > value:
+                # CASE A: between steps
+                return 1.0 / (3 * self.num_steps)
+            elif self.steps[bucket] == value:
+                # CASE B/C: equal to steps
+                if 0 < bucket < self.num_steps and self.steps[bucket + 1] != value:
+                    # CASE B1: equal to ONE step and it's NOT FIRST OR LAST
+                    return 1.0 / self.num_steps
                 else:
                     k = 0
-                    while self.histogram[bucket+k+1] == value:
+                    while self.steps[bucket + k + 1] == value:
                         k += 1
-                    if 0 < bucket and self.histogram[self.num_buckets] != value:
-                        #CASE B2: equal to SEVERAL steps, but NOT FIRST OR LAST
-                        return float(k) / self.num_buckets
+                    if 0 < bucket and self.steps[self.num_steps] != value:
+                        # CASE B2: equal to SEVERAL steps, but NOT FIRST OR LAST
+                        return float(k) / self.num_steps
                     else:
-                        #CASE C: equal to ONE OR SEVERAL STEPS including FIRST OR LAST
-                        return float((k - 0.5) / self.num_buckets)
+                        # CASE C: equal to ONE OR SEVERAL STEPS including FIRST OR LAST
+                        return float((k - 0.5) / self.num_steps)
 
     def estimate_lower(self, value):
-        if value < self.histogram[0]:
+        if value < self.steps[0]:
             return 0
-        if value > self.histogram[self.num_buckets]:
+        if value > self.steps[self.num_steps]:
             return self.total
 
-        for bucket in xrange(self.num_buckets+1):
+        for bucket in xrange(self.num_steps + 1):
 
-            if self.histogram[bucket] > value:
-                #CASE A: between steps
-                return (bucket + 1.0/3) / self.num_buckets
-            elif self.histogram[bucket] == value:
-                #CASE B/C: equal to steps
-                if 0 < bucket < self.num_buckets and self.histogram[bucket+1] != value:
-                    #CASE B1: equal to ONE step and it's NOT FIRST OR LAST
-                    return (bucket - 0.5) / self.num_buckets
+            if self.steps[bucket] > value:
+                # CASE A: between steps
+                return (bucket + 1.0/3) / self.num_steps
+            elif self.steps[bucket] == value:
+                # CASE B/C: equal to steps
+                if 0 < bucket < self.num_steps and self.steps[bucket+1] != value:
+                    # CASE B1: equal to ONE step and it's NOT FIRST OR LAST
+                    return (bucket - 0.5) / self.num_steps
                 else:
                     k = 0
-                    while self.histogram[bucket+k+1] == value:
+                    while self.steps[bucket+k+1] == value:
                         k += 1
-                    if 0 < bucket and self.histogram[self.num_buckets] != value:
-                        #CASE B2: equal to SEVERAL steps, but NOT FIRST OR LAST
-                        return (bucket - 0.5) / self.num_buckets
+                    if 0 < bucket and self.steps[self.num_steps] != value:
+                        # CASE B2: equal to SEVERAL steps, but NOT FIRST OR LAST
+                        return (bucket - 0.5) / self.num_steps
                     else:
-                        #CASE C: equal to ONE OR SEVERAL STEPS including FIRST OR LAST
-                        return 1 - (k - 0.5) / self.num_buckets
+                        # CASE C: equal to ONE OR SEVERAL STEPS including FIRST OR LAST
+                        return 1 - (k - 0.5) / self.num_steps
 
     def estimate_greater(self, value):
         return 1 - self.estimate_equal(value) - self.estimate_lower(value)
-
 
 # noinspection PyArgumentList
 class EstimadorGrupo(DistributionSteps):
@@ -241,7 +240,6 @@ class EstimadorGrupo(DistributionSteps):
                     else:
                         #CASE C: equal to ONE OR SEVERAL STEPS including FIRST OR LAST
                         return 1 - float(k) / self.parameter - self.estimate_equal(value) / 2
-
 
 class GroundTruth(Estimator):
 
