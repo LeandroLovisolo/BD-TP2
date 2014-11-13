@@ -1,6 +1,6 @@
 BUNDLE       = BD-TP2.tar.gz
 BUNDLE_DIR   = BD-TP2
-BUNDLE_FILES = tex Makefile README.md enunciado.pdf informe.pdf
+BUNDLE_FILES = source tex Makefile README.md enunciado.pdf informe.pdf
 
 .PHONY: all informe.pdf custom-dataset plots plot-custom-datasets \
 	      plot-performance plot-datasets clean clean-tex bundle
