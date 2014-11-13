@@ -23,6 +23,9 @@ if __name__ == '__main__':
     uniform = np.random.uniform(low=UNIFORM_LOW, high=UNIFORM_HIGH, size=NUM_TUPLES)
     normal  = np.random.normal(loc=NORMAL_MEAN, scale=NORMAL_STD, size=NUM_TUPLES)
 
+    uniform = map(int, uniform)
+    normal  = map(int, normal)
+
     for tuple in zip(uniform, normal):
         c.execute('INSERT INTO data VALUES (?, ?)', tuple)
 
