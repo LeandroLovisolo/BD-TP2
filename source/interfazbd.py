@@ -97,6 +97,11 @@ print('')
 
 for row in sqlite_cursor.execute('SELECT name FROM sqlite_master WHERE type=\'table\''):
     print 'Tabla: ' + row[0]
+    print 'Indices:'
+    indexes = []
+    for index in sqlite_cursor.execute('SELECT name FROM sqlite_master WHERE type == \'index\' AND tbl_name == \''+row[0]+'\''):
+        indexes.append(index[0])
+    print(', '.join(indexes))
     print('')
     columns = []
     for row_two in sqlite_cursor.execute('PRAGMA table_info(\''+row[0]+'\')'):
