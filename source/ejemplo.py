@@ -1,24 +1,67 @@
 # -*- coding: utf-8 -*-
 
 import estimators
+import random
 
-# Creo una instancia de la clase que representa al metodo
-# 'Histograma Clasico'
-aEstimator = estimators.ClassicHistogram('db.sqlite3', 'table1', 'c1', parameter=20)
-bEstimator = estimators.DistributionSteps('db.sqlite3', 'table1', 'c1', parameter=20)
-cEstimator = estimators.EstimadorGrupo('db.sqlite3', 'table1', 'c1', parameter=20)
-dEstimator = estimators.GroundTruth('db.sqlite3', 'table1', 'c1', parameter=20)
+def test_estimators(steps, column, total_values=50):
+    a_estimator = estimators.ClassicHistogram('db.sqlite3', 'table1', column, parameter=steps)
+    b_estimator = estimators.DistributionSteps('db.sqlite3', 'table1', column, parameter=steps)
+    c_estimator = estimators.EstimadorGrupo('db.sqlite3', 'table1', column, parameter=steps)
+    d_estimator = estimators.GroundTruth('db.sqlite3', 'table1', column, parameter=steps)
 
-# Pruebo distintas instancias de estimacion
-print "Classic Histogram"
-print "  Sel(=%d) : %3.8f" % (50, aEstimator.estimate_equal(50))
-print "  Sel(>%d) : %3.8f" % (70, aEstimator.estimate_greater(70))
-print "Distribution Steps"
-print "  Sel(=%d) : %3.8f" % (50, bEstimator.estimate_equal(50))
-print "  Sel(>%d) : %3.8f" % (70, bEstimator.estimate_greater(70))
-print "Estimador Grupo"
-print "  Sel(=%d) : %3.8f" % (50, cEstimator.estimate_equal(50))
-print "  Sel(>%d) : %3.8f" % (70, cEstimator.estimate_greater(70))
-print "Real"
-print "  Sel(=%d) : %3.8f" % (50, dEstimator.estimate_equal(50))
-print "  Sel(>%d) : %3.8f" % (70, dEstimator.estimate_greater(70))
+    val_range = a_estimator.max_val - a_estimator.min_val
+
+    values = []
+    for i in xrange(total_values):
+        values.append(random.randint(a_estimator.min_val, a_estimator.max_val))
+
+    error_a_eq = 0
+    error_b_eq = 0
+    error_c_eq = 0
+    error_a_gt = 0
+    error_b_gt = 0
+    error_c_gt = 0
+
+    for value in values:
+        # print "-------------------------------------%s-------------------------------------" % str(value)
+        # print "Classic Histogram"
+        # print "  Sel(=%d) : %3.8f" % (value, a_estimator.estimate_equal(value))
+        # print "  Sel(>%d) : %3.8f" % (value, a_estimator.estimate_greater(value))
+        # print "Distribution Steps"
+        # print "  Sel(=%d) : %3.8f" % (value, b_estimator.estimate_equal(value))
+        # print "  Sel(>%d) : %3.8f" % (value, b_estimator.estimate_greater(value))
+        # print "Estimador Grupo"
+        # print "  Sel(=%d) : %3.8f" % (value, c_estimator.estimate_equal(value))
+        # print "  Sel(>%d) : %3.8f" % (value, c_estimator.estimate_greater(value))
+        # print "Real"
+        # print "  Sel(=%d) : %3.8f" % (value, d_estimator.estimate_equal(value))
+        # print "  Sel(>%d) : %3.8f" % (value, d_estimator.estimate_greater(value))
+        ea = a_estimator.estimate_equal(value)
+        eb = b_estimator.estimate_equal(value)
+        ec = c_estimator.estimate_equal(value)
+        ed = d_estimator.estimate_equal(value)
+
+        error_a_eq += abs(ea - ed)
+        error_b_eq += abs(eb - ed)
+        error_c_eq += abs(ec - ed)
+
+        ga = a_estimator.estimate_greater(value)
+        gb = b_estimator.estimate_greater(value)
+        gc = c_estimator.estimate_greater(value)
+        gd = d_estimator.estimate_greater(value)
+
+        error_a_gt += abs(ga - gd)
+        error_b_gt += abs(gb - gd)
+        error_c_gt += abs(gc - gd)
+
+    print "Classic Histogram"
+    print "  Eq error : %3.8f" % (error_a_eq)
+    print "  Gt error : %3.8f" % (error_a_gt)
+    print "Distribution Steps"
+    print "  Eq error : %3.8f" % (error_b_eq)
+    print "  Gt error : %3.8f" % (error_b_gt)
+    print "Estimador Grupo"
+    print "  Eq error : %3.8f" % (error_c_eq)
+    print "  Gt error : %3.8f" % (error_c_gt)
+
+test_estimators(20, 'c1')

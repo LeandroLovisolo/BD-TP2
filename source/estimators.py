@@ -79,7 +79,7 @@ class ClassicHistogram(Estimator):
     def estimate_greater(self, value):
         columns = self.get_columns_for(value)
         if len(columns) == 1:
-            return self.gt_histogram[columns[0]] * 100 / self.total
+            return self.gt_histogram[columns[0]] / self.total
         else:
             return float((self.gt_histogram[columns[0]] + self.gt_histogram[columns[1]]) / 2) / self.total
 
