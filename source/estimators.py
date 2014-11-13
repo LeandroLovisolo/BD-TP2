@@ -1,12 +1,7 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 
 import sqlite3
 import numpy as np
-# import pylab
-# import random
-
-TABLE_NAME = 'table1'
-
 
 class Estimator(object):
     """Clase base de los estimadores."""
@@ -66,7 +61,7 @@ class ClassicHistogram(Estimator):
         for i in range(0, self.num_buckets):
             c.execute('''SELECT COUNT(*) FROM %s
                           WHERE %s >= %d
-                            AND %s <= %d''' % (TABLE_NAME,
+                            AND %s <= %d''' % (self.table,
                                                self.column,
                                                self.bucket_ranges[i][0],
                                                self.column,
@@ -176,12 +171,12 @@ class EstimadorGrupo(DistributionSteps):
     def build_struct(self):
         super(EstimadorGrupo, self).build_struct()
         c = self.conn.cursor()
-        for row in c.execute('SELECT MAX(%s) FROM %s' % (self.column, TABLE_NAME)):
+        for row in c.execute('SELECT MAX(%s) FROM %s' % (self.column, self.table)):
             value = row[0]
             self.max_val = value
 
         c = self.conn.cursor()
-        for row in c.execute('SELECT MIN(%s) FROM %s' % (self.column, TABLE_NAME)):
+        for row in c.execute('SELECT MIN(%s) FROM %s' % (self.column, self.table)):
             value = row[0]
             self.min_val = value
 
