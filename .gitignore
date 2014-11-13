@@ -1,6 +1,18 @@
+# LaTeX
+*.aux
+*.log
+*.out
+*.pdf
+
+# Python
+*.pyc
+
+# Bundle
+*.tar.gz
+
 # Vim
 *.swp
 
-# Sublime text
+# Sublime Text
 *.sublime-project
 *.sublime-workspace
