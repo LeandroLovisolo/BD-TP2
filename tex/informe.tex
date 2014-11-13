@@ -46,6 +46,17 @@
 %%%%%%%%%% Configuración de Fancyhdr - Fin %%%%%%%%%%
 
 
+%%%%%%%%%% Insertar gráfico - Inicio %%%%%%%%%%
+\newcommand{\grafico}[3]{
+  \begin{figure}[H]
+    \includegraphics[type=pdf,ext=.pdf,read=.pdf]{#1}
+    \caption{#2}
+    \label{#3}
+  \end{figure}
+}
+%%%%%%%%%% Insertar gráfico - Fin %%%%%%%%%%
+
+
 %%%%%%%%%% Miscelánea - Inicio %%%%%%%%%%
 % Evita que el documento se estire verticalmente para ocupar el espacio vacío
 % en cada página.
@@ -157,6 +168,51 @@ Pendiente.
 \section{Análisis Empírico}
 
 Pendiente.
+
+
+\subsection{Datasets provistos por la cátedra}
+
+A continuación ilustramos los datasets correspondientes a cada columna de la tabla en la base de datos provista por la cátedra.
+
+\grafico{dataset-c0}
+        {Columna \emph{c0}}
+        {dataset-columna-c0}
+
+\grafico{dataset-c1}
+        {Columna \emph{c1}}
+        {dataset-columna-c1}
+
+\grafico{dataset-c2}
+        {Columna \emph{c2}}
+        {dataset-columna-c2}
+
+\grafico{dataset-c3}
+        {Columna \emph{c3}}
+        {dataset-columna-c3}
+
+\grafico{dataset-c4}
+        {Columna \emph{c4}}
+        {dataset-columna-c4}
+
+\grafico{dataset-c5}
+        {Columna \emph{c5}}
+        {dataset-columna-c5}
+
+\grafico{dataset-c6}
+        {Columna \emph{c6}}
+        {dataset-columna-c6}
+
+\grafico{dataset-c7}
+        {Columna \emph{c7}}
+        {dataset-columna-c7}
+
+\grafico{dataset-c8}
+        {Columna \emph{c8}}
+        {dataset-columna-c8}
+
+\grafico{dataset-c9}
+        {Columna \emph{c9}}
+        {dataset-columna-c9}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

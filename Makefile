@@ -2,13 +2,16 @@ BUNDLE       = BD-TP2.tar.gz
 BUNDLE_DIR   = BD-TP2
 BUNDLE_FILES = tex Makefile README.md enunciado.pdf informe.pdf
 
-.PHONY: all clean clean-tex bundle
+.PHONY: all informe.pdf plots clean clean-tex bundle
 
-all: informe.pdf
+all: plots informe.pdf
 
 informe.pdf:
 	make -C tex all
 	mv tex/informe.pdf .
+
+plots:
+	cd source; ./plot-datasets.py
 
 bundle: clean informe.pdf
 	make clean-tex
