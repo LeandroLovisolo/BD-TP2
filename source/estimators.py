@@ -247,33 +247,23 @@ class GroundTruth(Estimator):
         self.connect()
 
     def estimate_equal(self, value):
-
-        count = 0
         c = self.conn.cursor()
-        for row in c.execute('SELECT COUNT(%s) FROM %s WHERE %s = %s' % (self.column, TABLE_NAME, self.column, str(value))):
-            value = row[0]
-            count = value
 
-        total = 0
-        c = self.conn.cursor()
-        for row in c.execute('SELECT COUNT(%s) FROM %s' % (self.column, TABLE_NAME)):
-            value = row[0]
-            total = value
+        c.execute('SELECT COUNT(%s) FROM %s' % (self.column, self.table))
+        total = c.fetchone()[0]
 
-        return float(count)/total
+        c.execute('SELECT COUNT(%s) FROM %s WHERE %s = %s' % (self.column, self.table, self.column, value))
+        count = c.fetchone()[0]
+
+        return float(count) / total
 
     def estimate_greater(self, value):
-
-        count = 0
         c = self.conn.cursor()
-        for row in c.execute('SELECT COUNT(%s) FROM %s WHERE %s > %s' % (self.column, TABLE_NAME, self.column, str(value),)):
-            value = row[0]
-            count = value
 
-        total = 0
-        c = self.conn.cursor()
-        for row in c.execute('SELECT COUNT(%s) FROM %s' % (self.column, TABLE_NAME,)):
-            value = row[0]
-            total = value
+        c.execute('SELECT COUNT(%s) FROM %s' % (self.column, self.table))
+        total = c.fetchone()[0]
 
-        return float(count)/total
+        c.execute('SELECT COUNT(%s) FROM %s WHERE %s > %s' % (self.column, self.table, self.column, value))
+        value = c.fetchone()[0]
+
+        return float(count) / total
