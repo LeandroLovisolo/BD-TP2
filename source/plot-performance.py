@@ -8,6 +8,11 @@ import estimators
 from plot import Plot
 import numpy as np
 
+DATABASE    = 'custom.sqlite3'
+TABLE       = 'data'
+COL_UNIFORM = 'uniform'
+COL_NORMAL  = 'normal'
+
 class PerformancePlot(Plot):
     def __init__(self, bins, means, stds, output_path):
         self.bins = bins
@@ -22,10 +27,10 @@ class PerformancePlot(Plot):
         plt.ylabel('Performance')
 
 def build_queries(column, n):
-    conn = sqlite3.connect('db.sqlite3')
+    conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
 
-    c.execute('SELECT MIN(%s), MAX(%s) FROM table1' % (column, column))
+    c.execute('SELECT MIN(%s), MAX(%s) FROM %s' % (column, column, TABLE))
     row = c.fetchone()
     min = row[0]
     max = row[1]
@@ -37,7 +42,7 @@ def build_queries(column, n):
 
 def plot(estimator_class, distribution, comparison, output_path):
     parameters = range(5, 51, 5)
-    column = 'c0' if distribution == 'uniform' else 'c3'
+    column = COL_UNIFORM if distribution == 'uniform' else COL_NORMAL
     queries = build_queries(column, 50)
 
     means = []
@@ -49,8 +54,8 @@ def plot(estimator_class, distribution, comparison, output_path):
         sys.stdout.write('\rComputig parameter %d/%d...' % (current_parameter, len(parameters)))
         sys.stdout.flush()
 
-        estimator = estimator_class('db.sqlite3', 'table1', column, parameter)
-        ground_truth = estimators.GroundTruth('db.sqlite3', 'table1', column, parameter)
+        estimator = estimator_class(DATABASE, TABLE, column, parameter)
+        ground_truth = estimators.GroundTruth(DATABASE, TABLE, column, parameter)
 
         if comparison == 'equal':
             estimations = [estimator.estimate_equal(q) for q in queries]
