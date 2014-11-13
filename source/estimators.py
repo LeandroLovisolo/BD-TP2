@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sqlite3
-# import numpy as np
+import numpy as np
 # import pylab
 # import random
 
@@ -91,93 +91,82 @@ class ClassicHistogram(Estimator):
             return [int((value - self.min_val) / self.bucket_width),
                     int((value - self.min_val) / self.bucket_width) + 1]
 
-
 class DistributionSteps(Estimator):
     def build_struct(self):
-        self.histogram = [0 for i in xrange(self.parameter + 1)]
+        self.num_buckets = self.parameter
+        self.histogram = [0] * (self.num_buckets + 1)
 
         self.connect()
-
         c = self.conn.cursor()
-        self.total = 0
 
-        for row in c.execute('SELECT count(*) FROM %s' % (TABLE_NAME, )):
-            value = row[0]
-            self.total += value
+        c.execute('SELECT COUNT(*) FROM %s' % self.table)
+        self.total = c.fetchone()[0]
 
-        items_per_bucket = int(self.total / self.parameter)
+        items_per_bucket = int(np.ceil(float(self.total) / self.num_buckets))
 
-        #   recorrer la base y meter items_per_bucket en cada columna
-        c = self.conn.cursor()
-        items_in_current_bucket = 0
-        current_bucket = 0
-        value = 0   #fix choto
-        for row in c.execute('SELECT %s FROM %s ORDER BY %s ASC' % (self.column, TABLE_NAME, self.column)):
-            value = row[0]
-            if current_bucket == 0 and items_in_current_bucket == 0:
-                self.histogram[current_bucket] = value
+        c.execute('SELECT %s FROM %s ORDER BY %s ASC' % (self.column, self.table, self.column))
 
-            if items_in_current_bucket == items_per_bucket:
-                current_bucket += 1
-                items_in_current_bucket = 0
-                self.histogram[current_bucket] = value
-
-            items_in_current_bucket += 1
-        current_bucket += 1
-        self.histogram[current_bucket] = value
+        for current_bucket in range(1, self.num_buckets + 1):
+            if current_bucket == self.num_buckets:
+                rows = c.fetchall()
+            else:
+                rows = c.fetchmany(items_per_bucket)
+            if current_bucket == 1:
+                self.histogram[0] = rows[0][0]
+            self.histogram[current_bucket] = rows[-1][0]
 
     def estimate_equal(self, value):
         if value < self.histogram[0]:
             return 0
-        if value > self.histogram[self.parameter]:
+        if value > self.histogram[self.num_buckets]:
             return 0
 
-        for bucket in xrange(self.parameter+1):
+        for bucket in xrange(self.num_buckets+1):
             if self.histogram[bucket] > value:
                 #CASE A: between steps
-                return 1.0 / (3 * self.parameter)
+                return 1.0 / (3 * self.num_buckets)
             elif self.histogram[bucket] == value:
                 #CASE B/C: equal to steps
-                if 0 < bucket < self.parameter and self.histogram[bucket+1] != value:
+                if 0 < bucket < self.num_buckets and self.histogram[bucket+1] != value:
                     #CASE B1: equal to ONE step and it's NOT FIRST OR LAST
-                    return 1.0 / self.parameter
+                    return 1.0 / self.num_buckets
                 else:
                     k = 0
                     while self.histogram[bucket+k+1] == value:
                         k += 1
-                    if 0 < bucket and self.histogram[self.parameter] != value:
+                    if 0 < bucket and self.histogram[self.num_buckets] != value:
                         #CASE B2: equal to SEVERAL steps, but NOT FIRST OR LAST
-                        return float(k) / self.parameter
+                        return float(k) / self.num_buckets
                     else:
                         #CASE C: equal to ONE OR SEVERAL STEPS including FIRST OR LAST
-                        return float((k - 0.5) / self.parameter)
+                        return float((k - 0.5) / self.num_buckets)
 
     def estimate_lower(self, value):
         if value < self.histogram[0]:
             return 0
-        if value > self.histogram[self.parameter]:
+        if value > self.histogram[self.num_buckets]:
             return self.total
 
-        for bucket in xrange(self.parameter+1):
+        for bucket in xrange(self.num_buckets+1):
 
             if self.histogram[bucket] > value:
                 #CASE A: between steps
-                return (bucket + 1.0/3) / self.parameter
+                return (bucket + 1.0/3) / self.num_buckets
             elif self.histogram[bucket] == value:
                 #CASE B/C: equal to steps
-                if 0 < bucket < self.parameter and self.histogram[bucket+1] != value:
+                if 0 < bucket < self.num_buckets and self.histogram[bucket+1] != value:
                     #CASE B1: equal to ONE step and it's NOT FIRST OR LAST
-                    return (bucket - 0.5) / self.parameter
+                    return (bucket - 0.5) / self.num_buckets
                 else:
                     k = 0
                     while self.histogram[bucket+k+1] == value:
                         k += 1
-                    if 0 < bucket and self.histogram[self.parameter] != value:
+                    if 0 < bucket and self.histogram[self.num_buckets] != value:
                         #CASE B2: equal to SEVERAL steps, but NOT FIRST OR LAST
-                        return (bucket - 0.5) / self.parameter
+                        return (bucket - 0.5) / self.num_buckets
                     else:
                         #CASE C: equal to ONE OR SEVERAL STEPS including FIRST OR LAST
-                        return 1 - (k - 0.5) / self.parameter
+                        return 1 - (k - 0.5) / self.num_buckets
 
     def estimate_greater(self, value):
         return 1 - self.estimate_equal(value) - self.estimate_lower(value)
