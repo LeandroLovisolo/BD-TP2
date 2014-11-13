@@ -32,64 +32,63 @@ class Estimator(object):
     def connect(self):
         self.conn = sqlite3.connect(self.db)
 
-
 class ClassicHistogram(Estimator):
     def build_struct(self):
-        self.eq_histogram = [0 for i in xrange(self.parameter + 1)]
-        self.gt_histogram = [0 for i in xrange(self.parameter + 1)]
+        self.num_buckets = self.parameter
 
         self.connect()
-        # buscar minimo y maximo y ver de que valor a que valor va el intervalo?
-        #   o directamente sobre el rango?
+        self.compute_range()
+        self.compute_bucket_ranges()
+        self.compute_buckets()
 
+    def compute_range(self):
         c = self.conn.cursor()
-        self.total = 0
+        c.execute('SELECT COUNT(*), MIN(%s), MAX(%s) FROM %s' %
+                  (self.column, self.column, self.table))
+        row = c.fetchone()
+        self.total = int(row[0])
+        self.min   = int(row[1])
+        self.max   = int(row[2])
+        self.step = (self.max - self.min) / self.num_buckets
 
-        for row in c.execute('SELECT count(*) FROM %s' % (TABLE_NAME, )):
-            value = row[0]
-            self.total += value
+    def compute_bucket_ranges(self):
+        self.buckets = [0 for i in range(0, self.num_buckets)]
+        self.bucket_ranges = [None for i in range(0, self.num_buckets)]
 
+        for i in range(0, self.num_buckets):
+            bucket_min = self.min + self.step * i
+            if i == self.num_buckets - 1: bucket_max = self.max
+            else: bucket_max = self.min + self.step * (i + 1) - 1
+            self.bucket_ranges[i] = (bucket_min, bucket_max)
+
+    def compute_buckets(self):
         c = self.conn.cursor()
-        for row in c.execute('SELECT MAX(%s) FROM %s' % (self.column, TABLE_NAME)):
-            value = row[0]
-            self.max_val = value
+        for i in range(0, self.num_buckets):
+            c.execute('''SELECT COUNT(*) FROM %s
+                          WHERE %s >= %d
+                            AND %s <= %d''' % (TABLE_NAME,
+                                               self.column,
+                                               self.bucket_ranges[i][0],
+                                               self.column,
+                                               self.bucket_ranges[i][1]))
+            row = c.fetchone()
+            self.buckets[i] = row[0]
 
-        c = self.conn.cursor()
-        for row in c.execute('SELECT MIN(%s) FROM %s' % (self.column, TABLE_NAME)):
-            value = row[0]
-            self.min_val = value
-
-        val_range = self.max_val - self.min_val
-
-        self.bucket_width = int(val_range / self.parameter)  # cantidad de valores que representa una columna del histo
-
-        #   recorrer la base y contar cuantos entran en cada columna
-        c = self.conn.cursor()
-        for row in c.execute('SELECT %s FROM %s ORDER BY %s ASC' % (self.column, TABLE_NAME, self.column)):
-            value = row[0]
-            columns = self.get_columns_for(value)
-            self.eq_histogram[columns[0]] += 1
-            for i in xrange(columns[0]):
-                self.gt_histogram[i] += 1
+    def bucket_for(self, value):
+        for i in range(0, len(self.buckets)):
+            if self.bucket_ranges[i][0] <= value and value <= self.bucket_ranges[i][1]:
+                return i
+        return -1
 
     def estimate_equal(self, value):
-        columns = self.get_columns_for(value)
-        return float((self.eq_histogram[columns[0]] / self.bucket_width)) / self.total
+        return float(self.buckets[self.bucket_for(value)]) / self.total
 
     def estimate_greater(self, value):
-        columns = self.get_columns_for(value)
-        if len(columns) == 1:
-            return self.gt_histogram[columns[0]] / self.total
-        else:
-            return float((self.gt_histogram[columns[0]] + self.gt_histogram[columns[1]]) / 2) / self.total
-
-    def get_columns_for(self, value):
-        # si es exactamente min + bucket_width * k va a ser una sola, sino 2 y promedio los valores
-        if value % self.bucket_width == 0 or value == self.max_val:
-            return [int((value - self.min_val) / self.bucket_width)]
-        else:
-            return [int((value - self.min_val) / self.bucket_width),
-                    int((value - self.min_val) / self.bucket_width) + 1]
+        bucket = self.bucket_for(value)
+        greater = float(self.buckets[bucket]) / 2
+        for i in range(bucket + 1, len(self.buckets)):
+            greater += self.buckets[i]
+        return greater
 
 class DistributionSteps(Estimator):
     def build_struct(self):
