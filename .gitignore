@@ -1,3 +1,6 @@
+# Vim
+*.swp
+
 # Sublime text
 *.sublime-project
 *.sublime-workspace
