@@ -9,11 +9,11 @@ def test_estimators(steps, column, total_values=50):
     c_estimator = estimators.EstimadorGrupo('db.sqlite3', 'table1', column, parameter=steps)
     d_estimator = estimators.GroundTruth('db.sqlite3', 'table1', column, parameter=steps)
 
-    val_range = a_estimator.max_val - a_estimator.min_val
+    val_range = a_estimator.max - a_estimator.min
 
     values = []
     for i in xrange(total_values):
-        values.append(random.randint(a_estimator.min_val, a_estimator.max_val))
+        values.append(random.randint(a_estimator.min, a_estimator.max))
 
     error_a_eq = 0
     error_b_eq = 0
