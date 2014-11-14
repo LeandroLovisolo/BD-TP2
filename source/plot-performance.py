@@ -4,9 +4,10 @@
 import argparse
 import sys
 import sqlite3
-import estimators
 from plot import Plot
 import numpy as np
+import estimators
+import performance
 
 DATABASE    = 'custom.sqlite3'
 TABLE       = 'data'
@@ -26,24 +27,13 @@ class PerformancePlot(Plot):
         plt.xlabel('Par\\\'ametro')
         plt.ylabel('Performance')
 
-def build_queries(column, n):
-    conn = sqlite3.connect(DATABASE)
-    c = conn.cursor()
-
-    c.execute('SELECT MIN(%s), MAX(%s) FROM %s' % (column, column, TABLE))
-    row = c.fetchone()
-    min = row[0]
-    max = row[1]
-    step = (max - min) / n
-    queries = range(min, max, step)
-
-    conn.close()
-    return queries
-
 def plot(estimator_class, distribution, comparison, output_path):
     parameters = range(5, 51, 5)
     column = COL_UNIFORM if distribution == 'uniform' else COL_NORMAL
-    queries = build_queries(column, 50)
+
+    conn = sqlite3.connect(DATABASE)
+    queries = performance.build_queries(conn.cursor(), TABLE, column, 50)
+    conn.close()
 
     means = []
     stds = []
@@ -57,26 +47,14 @@ def plot(estimator_class, distribution, comparison, output_path):
         estimator = estimator_class(DATABASE, TABLE, column, parameter)
         ground_truth = estimators.GroundTruth(DATABASE, TABLE, column, parameter)
 
-        if comparison == 'equal':
-            estimations = [estimator.estimate_equal(q) for q in queries]
-            truths      = [ground_truth.estimate_equal(q) for q in queries]
-        else:
-            estimations = [estimator.estimate_greater(q) for q in queries]
-            truths      = [ground_truth.estimate_greater(q) for q in queries]
-
-        estimations = np.array(estimations)
-        truths = np.array(truths)
-        performances = np.absolute(estimations - truths)
-
-        mean = np.mean(performances)
-        std = np.std(performances)
+        _, mean, std = performance.compute_performance(estimator, comparison, queries)
 
         means.append(mean)
         stds.append(std)
 
     sys.stdout.write('\n')
-
     PerformancePlot(parameters, means, stds, output_path)
+    exit()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates performance plots')
@@ -102,38 +80,27 @@ if __name__ == '__main__':
 
     if args.hist_uniform_equal:
         plot(estimators.ClassicHistogram, 'uniform', 'equal', args.output)
-        exit()
     if args.hist_uniform_greater:
         plot(estimators.ClassicHistogram, 'uniform', 'greater', args.output)
-        exit()
     if args.hist_normal_equal:
         plot(estimators.ClassicHistogram, 'normal', 'equal', args.output)
-        exit()
     if args.hist_normal_greater:
         plot(estimators.ClassicHistogram, 'normal', 'greater', args.output)
 
     if args.diststep_uniform_equal:
         plot(estimators.DistributionSteps, 'uniform', 'equal', args.output)
-        exit()
     if args.diststep_uniform_greater:
         plot(estimators.DistributionSteps, 'uniform', 'greater', args.output)
-        exit()
     if args.diststep_normal_equal:
         plot(estimators.DistributionSteps, 'normal', 'equal', args.output)
-        exit()
     if args.diststep_normal_greater:
         plot(estimators.DistributionSteps, 'normal', 'greater', args.output)
-        exit()
 
     if args.custom_uniform_equal:
         plot(estimators.EstimadorGrupo, 'uniform', 'equal', args.output)
-        exit()
     if args.custom_uniform_greater:
         plot(estimators.EstimadorGrupo, 'uniform', 'greater', args.output)
-        exit()
     if args.custom_normal_equal:
         plot(estimators.EstimadorGrupo, 'normal', 'equal', args.output)
-        exit()
     if args.custom_normal_greater:
         plot(estimators.EstimadorGrupo, 'normal', 'greater', args.output)
-        exit()
