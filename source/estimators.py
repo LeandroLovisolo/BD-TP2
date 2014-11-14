@@ -83,7 +83,7 @@ class ClassicHistogram(Estimator):
         greater = float(self.buckets[bucket]) / 2
         for i in range(bucket + 1, len(self.buckets)):
             greater += self.buckets[i]
-        return greater
+        return greater / self.total
 
 class DistributionSteps(Estimator):
     def build_struct(self):
