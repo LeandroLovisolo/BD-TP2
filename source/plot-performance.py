@@ -15,17 +15,22 @@ COL_UNIFORM = 'uniform'
 COL_NORMAL  = 'normal'
 
 class PerformancePlot(Plot):
-    def __init__(self, bins, means, stds, output_path):
-        self.bins = bins
+    def __init__(self, parameters, means, stds, output_path):
+        self.parameters = parameters
         self.means = means
         self.stds = stds
         Plot.__init__(self, output_path)
 
     def do_plot(self, plt):
-        plt.errorbar(self.bins, self.means, yerr=self.stds, marker='o')
+        plt.errorbar(self.parameters, self.means, yerr=self.stds, marker='o')
 
+        plt.xticks(self.parameters)
         plt.xlabel('Par\\\'ametro')
         plt.ylabel('Performance')
+
+        length = max(self.parameters) - min(self.parameters)
+        margin = length * 0.05
+        plt.xlim([min(self.parameters) - margin, max(self.parameters) + margin])
 
 def plot(estimator_class, distribution, comparison, output_path):
     parameters = range(5, 51, 5)
