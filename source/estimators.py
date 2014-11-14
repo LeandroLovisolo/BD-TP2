@@ -76,7 +76,7 @@ class ClassicHistogram(Estimator):
         return -1
 
     def estimate_equal(self, value):
-        return float(self.buckets[self.bucket_for(value)]) / self.total
+        return float(self.buckets[self.bucket_for(value)] / float(self.step)) / self.total
 
     def estimate_greater(self, value):
         bucket = self.bucket_for(value)
