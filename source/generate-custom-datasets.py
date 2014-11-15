@@ -6,10 +6,10 @@ import numpy as np
 NUM_TUPLES   = 100000
 
 UNIFORM_LOW  = 0
-UNIFORM_HIGH = 100
+UNIFORM_HIGH = 1000
 
-NORMAL_MEAN  = 100
-NORMAL_STD   = 50
+NORMAL_MEAN  = 500
+NORMAL_STD   = 250
 
 if __name__ == '__main__':
     print "Creating dataset..."
