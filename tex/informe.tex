@@ -147,8 +147,44 @@ Pendiente.
 
 \section{Estimadores}
 
-Pendiente.
+\subsection{Classic Histogram}
 
+Este estimador se basa en un modelo de histograma en el cual cada barra representa un rango
+de valores del mismo tamaño.
+Es decir, al inicializar el estimador, se le pasa como parámetro el numero de barras que se
+desea que tenga el histograma
+y luego se utiliza dicho valor para dividir el rango de valores en partes iguales.
+Para calcular la selectividad por igualdad se asume que todos los valores que pertenecen a
+la misma barra tienen la
+ misma cantidad de registros, por lo que se divide el numero de registros de dicha barra
+  por la cantidad total y el numero de elementos por barra.
+% no dividimos a su vez por el ancho de la barra ? SI %
+Siguiendo la misma idea, para calcular la selectividad por mayor se suman todos los
+registros que corresponden a las barras superiores a la que pertenece el elemento, mas los que se estima que son mayores dentro de la misma barra. Esto se calcula en base a la diferencia con el limite superior del intervalo que lo contiene.
+
+\subsection{Distribution Steps}
+
+En este caso se busca obtener un histograma con barrasde la misma altura variando el
+tamaño de los intervalos que representa cada barra. De esta forma se busca tener mayor
+ granularidad al en el caso de que para algunos valores tengamos mucha cantidad de
+ registros y para otros no. para esto se arma un histograma dividiendo la cantidad de
+ registros de la tabla N grupos de igual tamaño, siendo N pasado por parámetro al
+ inicializarlo. Además se quiere que la suma de las estimaciones de las selectividades
+ por moyor, menos e igual de un mismo valor sumen 1.
+Por lo tanto para calcular la estimación de elementos mayores se asume que 1/3 de los
+elementos del intervalo son mayores si el valor que se evalúa no es límite de un
+intervalo. Para estimar la selectividad de la igualdad, se asume que aproximadamente
+ 1/3 de los elementos pertenecientes al grupo, son iguales al valor buscado,
+ por lo que al sumarse con la selectividad de menor y mayor se llega a 1.
+
+\subsection{Estimador Grupo}
+
+En este estimador se busca aprovechar el tipo de histograma que se arma con distribution steps,
+pero se busca mejorar el estimador por igualdad, ya que con una cantidad baja de steps, quedan muchos registros por
+grupo y generalmente estimar que 1/3 de ellos son iguales al valor que buscamos trae un error muy grande.
+Por lo tanto para estimar la cantidad de elementos iguales a uno dado se divide la cantidad de elementos del step
+(siempre es la misma) por el rango de valores del step y luego ésto por la cantidad total de elementos de la base.
+El estimador por mayor valor funciona de forma similar al de distribution steps.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Análisis Teório                                                            %%
@@ -157,18 +193,7 @@ Pendiente.
 
 \section{Análisis Teórico}
 
-\subsection{Comparación en distribución uniforme}
-En el caso de la selectividad por igualdad, dado que el estimador ClassicHistogram asume distribución uniforme de los datos para calcular la estimación, debería presentar la mejor performance entre los distintos estimadores.
-
-
-\subsection{Comparación en distribución normal}
-
-
-
-\subsection{}
-
-
-
+Pendiente
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Análisis Empírico                                                          %%
