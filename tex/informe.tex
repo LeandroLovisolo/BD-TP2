@@ -164,7 +164,7 @@ registros que corresponden a las barras superiores a la que pertenece el element
 
 \subsection{Distribution Steps}
 
-En esrte caso se busca obtener un histograma con barrasde la misma altura variando el
+En este caso se busca obtener un histograma con barrasde la misma altura variando el
 tamaño de los intervalos que representa cada barra. De esta forma se busca tener mayor
  granularidad al en el caso de que para algunos valores tengamos mucha cantidad de
  registros y para otros no. para esto se arma un histograma dividiendo la cantidad de
@@ -177,6 +177,12 @@ intervalo. Para estimar la selectividad de la igualdad, se asume que aproximadam
  1/3 de los elementos pertenecientes al grupo, son iguales al valor buscado,
  por lo que al sumarse con la selectividad de menor y mayor se llega a 1.
 
+\subsection{Estimador Grupo}
+
+En este estimador se busca aprovechar el tipo de histograma que se arma con distribution steps,
+pero se busca mejorar el estimador por igualdad, ya que con una cantidad baja de steps, quedan muchos registros por
+grupo y generalmente estimar que 1/3 de ellos son iguales al valor que buscamos trae un error muy grande.
+Por lo tanto para estimar la cantidad de elementos iguales a uno dado
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Análisis Teório                                                            %%
