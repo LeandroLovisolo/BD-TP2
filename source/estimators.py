@@ -139,7 +139,7 @@ class DistributionSteps(Estimator):
         if value < self.steps[0]:
             return 0
         if value > self.steps[self.num_steps]:
-            return self.total
+            return 1
 
         for step in xrange(self.num_steps + 1):
 
