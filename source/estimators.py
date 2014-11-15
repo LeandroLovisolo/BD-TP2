@@ -124,7 +124,7 @@ class DistributionSteps(Estimator):
                     return 1.0 / self.num_steps
                 else:
                     k = 0
-                    while self.steps[step + k + 1] == value:
+                    while len(self.steps) > step + k + 1 and self.steps[step + k + 1] == value:
                         k += 1
                     if 0 < step and self.steps[self.num_steps] != value:
                         # CASE B2: equal to SEVERAL steps, but NOT FIRST OR LAST
@@ -151,7 +151,7 @@ class DistributionSteps(Estimator):
                     return (step - 0.5) / self.num_steps
                 else:
                     k = 0
-                    while self.steps[step+k+1] == value:
+                    while len(self.steps) > step + k + 1 and self.steps[step+k+1] == value:
                         k += 1
                     if 0 < step and self.steps[self.num_steps] != value:
                         # CASE B2: equal to SEVERAL steps, but NOT FIRST OR LAST
@@ -189,7 +189,9 @@ class EstimadorGrupo(DistributionSteps):
         for step in xrange(self.num_steps+1):
             if self.steps[step] > value:
                 #CASE A: between steps
-                return 1.0 / self.range()
+                step_range = self.steps[step] - self.steps[step-1] +1
+                return float(self.items_per_step)/ step_range / self.total
+                #return 1.0 / self.range()
             elif self.steps[step] == value:
                 #CASE B/C: equal to steps
                 if 0 < step < self.num_steps and self.steps[step+1] != value:
@@ -197,7 +199,7 @@ class EstimadorGrupo(DistributionSteps):
                     return 1.0 / self.total
                 else:
                     k = 0
-                    while self.steps[step+k+1] == value:
+                    while len(self.steps) > step + k + 1 and self.steps[step+k+1] == value:
                         k += 1
                     if 0 < step and self.steps[self.num_steps] != value:
                         #CASE B2: equal to SEVERAL steps, but NOT FIRST OR LAST
@@ -216,7 +218,10 @@ class EstimadorGrupo(DistributionSteps):
 
             if self.steps[step] > value:
                 #CASE A: between steps
-                return (step + 1.0/2) / self.num_steps - self.estimate_equal(value) / 2
+                step_range = self.steps[step] - self.steps[step-1] + 1
+                factor = float(value - self.steps[step-1]) / step_range
+                return (step + factor) / self.num_steps - self.estimate_equal(value) / 2
+                # return (step + 1.0/2) / self.num_steps - self.estimate_equal(value) / 2
             elif self.steps[step] == value:
                 #CASE B/C: equal to steps
                 if 0 < step < self.num_steps and self.steps[step+1] != value:
@@ -224,7 +229,7 @@ class EstimadorGrupo(DistributionSteps):
                     return float(step) / self.num_steps - self.estimate_equal(value) / 2
                 else:
                     k = 0
-                    while self.steps[step+k+1] == value:
+                    while len(self.steps) > step + k + 1 and self.steps[step+k+1] == value:
                         k += 1
                     if 0 < step and self.steps[self.num_steps] != value:
                         #CASE B2: equal to SEVERAL steps, but NOT FIRST OR LAST
