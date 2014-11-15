@@ -136,7 +136,7 @@ class DistributionSteps(Estimator):
                         return float((k - 0.5) / self.num_steps)
 
     def estimate_lower(self, value):
-        if value < self.steps[0]:
+        if value <= self.steps[0]:
             return 0
         if value > self.steps[self.num_steps]:
             return 1
