@@ -3,7 +3,7 @@
 import estimators
 import random
 
-def test_estimators(steps, column, total_values=50):
+def test_estimators(steps, column, total_values=100):
     a_estimator = estimators.ClassicHistogram('db.sqlite3', 'table1', column, parameter=steps)
     b_estimator = estimators.DistributionSteps('db.sqlite3', 'table1', column, parameter=steps)
     c_estimator = estimators.EstimadorGrupo('db.sqlite3', 'table1', column, parameter=steps)
@@ -64,4 +64,4 @@ def test_estimators(steps, column, total_values=50):
     print "  Eq error : %3.8f" % (error_c_eq)
     print "  Gt error : %3.8f" % (error_c_gt)
 
-test_estimators(20, 'c1')
+test_estimators(50, 'c1')
