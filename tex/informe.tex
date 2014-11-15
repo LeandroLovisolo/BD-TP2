@@ -182,7 +182,9 @@ intervalo. Para estimar la selectividad de la igualdad, se asume que aproximadam
 En este estimador se busca aprovechar el tipo de histograma que se arma con distribution steps,
 pero se busca mejorar el estimador por igualdad, ya que con una cantidad baja de steps, quedan muchos registros por
 grupo y generalmente estimar que 1/3 de ellos son iguales al valor que buscamos trae un error muy grande.
-Por lo tanto para estimar la cantidad de elementos iguales a uno dado
+Por lo tanto para estimar la cantidad de elementos iguales a uno dado se divide la cantidad de elementos del step
+(siempre es la misma) por el rango de valores del step y luego ésto por la cantidad total de elementos de la base.
+El estimador por mayor valor funciona de forma similar al de distribution steps.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Análisis Teório                                                            %%
