@@ -29,8 +29,6 @@ class Estimator(object):
 
 class ClassicHistogram(Estimator):
     def build_struct(self):
-        self.num_buckets = self.parameter
-
         self.connect()
         self.compute_range()
         self.compute_bucket_ranges()
@@ -41,20 +39,18 @@ class ClassicHistogram(Estimator):
         c.execute('SELECT COUNT(*), MIN(%s), MAX(%s) FROM %s' %
                   (self.column, self.column, self.table))
         row = c.fetchone()
-        self.total = int(row[0])
-        self.min   = int(row[1])
-        self.max   = int(row[2])
-        self.step = (self.max - self.min) / self.num_buckets
+
+        self.total       = int(row[0])
+        self.min         = int(row[1])
+        self.max         = int(row[2])
+        self.num_buckets = min(self.parameter, self.max - self.min + 1)
+        self.step        = float(self.max - self.min) / self.num_buckets
 
     def compute_bucket_ranges(self):
         self.buckets = [0 for i in range(0, self.num_buckets)]
-        self.bucket_ranges = [None for i in range(0, self.num_buckets)]
-
-        for i in range(0, self.num_buckets):
-            bucket_min = self.min + self.step * i
-            if i == self.num_buckets - 1: bucket_max = self.max
-            else: bucket_max = self.min + self.step * (i + 1) - 1
-            self.bucket_ranges[i] = (bucket_min, bucket_max)
+        self.bucket_ranges = [(int(self.min + self.step * i),
+                               int(self.min + self.step * (i + 1)))
+                              for i in range(0, self.num_buckets)]
 
     def compute_buckets(self):
         c = self.conn.cursor()
@@ -76,7 +72,7 @@ class ClassicHistogram(Estimator):
         return -1
 
     def estimate_equal(self, value):
-        return float(self.buckets[self.bucket_for(value)] / float(self.step)) / self.total
+        return float(self.buckets[self.bucket_for(value)] / self.step) / self.total
 
     def estimate_greater(self, value):
         bucket = self.bucket_for(value)
