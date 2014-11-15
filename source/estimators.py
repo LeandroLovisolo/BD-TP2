@@ -96,7 +96,7 @@ class DistributionSteps(Estimator):
         c.execute('SELECT COUNT(*) FROM %s' % self.table)
         self.total = c.fetchone()[0]
 
-        items_per_step = int(np.ceil(float(self.total) / self.num_steps))
+        self.items_per_step = int(np.ceil(float(self.total) / self.num_steps))
 
         c.execute('SELECT %s FROM %s ORDER BY %s ASC' % (self.column, self.table, self.column))
 
@@ -104,7 +104,7 @@ class DistributionSteps(Estimator):
             if current_step == self.num_steps:
                 rows = c.fetchall()
             else:
-                rows = c.fetchmany(items_per_step)
+                rows = c.fetchmany(self.items_per_step)
             if current_step == 1:
                 self.steps[0] = rows[0][0]
             self.steps[current_step] = rows[-1][0]
@@ -167,7 +167,6 @@ class DistributionSteps(Estimator):
 
 # noinspection PyArgumentList
 class EstimadorGrupo(DistributionSteps):
-
     def build_struct(self):
         super(EstimadorGrupo, self).build_struct()
         c = self.conn.cursor()
