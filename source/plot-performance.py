@@ -33,7 +33,7 @@ class PerformancePlot(Plot):
         plt.xlim([min(self.parameters) - margin, max(self.parameters) + margin])
 
 def plot(estimator_class, distribution, comparison, output_path):
-    parameters = range(5, 51, 5)
+    parameters = range(5, 101, 5)
     column = COL_UNIFORM if distribution == 'uniform' else COL_NORMAL
 
     conn = sqlite3.connect(DATABASE)
