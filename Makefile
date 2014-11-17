@@ -38,7 +38,7 @@ plot-performance:
 plot-datasets:
 	cd source; ./plot-datasets.py
 
-bundle: clean informe.pdf
+bundle: clean all
 	make clean-tex
 	mkdir $(BUNDLE_DIR)
 	cp $(BUNDLE_FILES) $(BUNDLE_DIR) -r
@@ -47,6 +47,7 @@ bundle: clean informe.pdf
 
 clean: clean-tex
 	rm -rf informe.pdf $(BUNDLE) $(BUNDLE_DIR)
+	rm source/*.pyc
 
 clean-tex:
 	make -C tex clean
