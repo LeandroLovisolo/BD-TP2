@@ -47,7 +47,7 @@ bundle: clean all
 
 clean: clean-tex
 	rm -rf informe.pdf $(BUNDLE) $(BUNDLE_DIR)
-	rm source/*.pyc
+	rm -f source/*.pyc
 
 clean-tex:
 	make -C tex clean
