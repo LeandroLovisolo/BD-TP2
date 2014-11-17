@@ -48,6 +48,7 @@ bundle: clean all
 clean: clean-tex
 	rm -rf informe.pdf $(BUNDLE) $(BUNDLE_DIR)
 	rm -f source/*.pyc
+	find . -type f -name *.swp -delete
 
 clean-tex:
 	make -C tex clean
