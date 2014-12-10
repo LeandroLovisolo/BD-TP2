@@ -193,7 +193,25 @@ El estimador por mayor valor funciona de forma similar al de distribution steps.
 
 \section{Análisis Teórico}
 
-Pendiente
+\subsection{Dataset con distribucion normal}
+El estimador Classic Histogram presenta una baja pérfomance bajo una distribución normal, en especial, a la hora de realizar operaciones de mayor o menor.
+Esto sucede debdio a que, al ser la altura de los bloques del histograma variables, cualquier búsqueda por mayor o menor que caiga en un bloque
+donde la altura es importante, tendrá un error alto, ya que, el cálculo de la selectividad se realiza tomando el punto medio entre la selectividad que dará
+el intervalo siguiente y el anterior, haciendo que, en el caso de tener una cantidad importante de tuplas, la división a la mitad del intervalo, dará como máximo,
+un error de 0.5 en la selectividad.
+
+Al contrario de Classic Histogram, Distribution Steps presentará una mejor pérformance ante esta distribución. Esto se debe a que no sufre del problema
+de los bloques de gran altura. Esto ocurre porque el estimador construye bloques o \textit{steps} de misma altura o cantidad de tuplas, haciendo que el problema 
+antes descripto para Classic Histogram no ocurra resultando en un error de estimación de la selectividad menor.
+
+\subsection{Dataset con distribución uniforme}
+El estimador Classic Histogram, a la hora de construir sus \texit{barras} o bloques, como la distribución es uniforme en el rango, tendrá \texit{barras}
+de igual altura, eliminando la ocurrencia del problema mencionado en el Dataset con distribución normal, ya que ahora, al tener la misma altura, se minimiza
+el punto medio de donde se sacará la selectividad, haciendo que el error reduzca considerablemente.
+
+En esta distribución, ambos estimadores tendrán sus bloques de igual tamaño, por lo que el problema que sufría anteriormente Classic Histogram no está
+presente para mostrar una diferencia significativa entre estimadores.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Análisis Empírico                                                          %%
