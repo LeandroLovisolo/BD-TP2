@@ -49,8 +49,12 @@ class ClassicHistogram(Estimator):
     def compute_bucket_ranges(self):
         self.buckets = [0 for i in range(0, self.num_buckets)]
         self.bucket_ranges = [(int(self.min + self.step * i),
-                               int(self.min + self.step * (i + 1)))
+                               int(self.min -1 + (self.step * (i + 1))))
                               for i in range(0, self.num_buckets)]
+        #Increments last bucket's max
+        self.bucket_ranges[-1] =  (self.bucket_ranges[-1][0], self.bucket_ranges[-1][1]+1)
+        #print 'Last bucket range: ' + str(self.bucket_ranges[-1][0]) + ' ' + str(self.bucket_ranges[-1][1])
+
 
     def compute_buckets(self):
         c = self.conn.cursor()
@@ -72,15 +76,32 @@ class ClassicHistogram(Estimator):
         return -1
 
     def estimate_equal(self, value):
+        if value > self.max or value < self.min:
+            return 0
         return float(self.buckets[self.bucket_for(value)] / self.step) / self.total
 
     def estimate_greater(self, value):
+        #print 'Se llama a estimate_greater con value: ' + str(value) + ' maximo: ' + str(self.max) + ' min: ' + str(self.min)
+        if value > self.max:
+            print 'Valor por arriba de max'
+            return 0
+        elif value < self.min:
+            print 'Valor por debajo de min'
+            return 1
+
         bucket = self.bucket_for(value)
+        #print 'Bucket numero: ' + str(bucket)
+        #print '[bucket][0]: ' + str(self.bucket_ranges[bucket][0]) + '[bucket][1]' + str(self.bucket_ranges[bucket][1])
+        #print '[bucket][1] - value: ' + str(self.bucket_ranges[bucket][1] - value)
         factor = float(self.bucket_ranges[bucket][1] - value) / self.step
+        #print 'Factor: ' + str(factor)
+        
         greater = float(self.buckets[bucket]) * factor
+        #print 'Greater inicial: ' + str(greater)
         #greater = float(self.buckets[bucket]) / 2
         for i in range(bucket + 1, len(self.buckets)):
             greater += self.buckets[i]
+        #print 'Greater: ' + str(greater)
         return greater / self.total - self.estimate_equal(value)
 
 class DistributionSteps(Estimator):
