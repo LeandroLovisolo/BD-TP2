@@ -157,6 +157,37 @@ de valores del mismo tamaño.
 Es decir, al inicializar el estimador, se le pasa como parámetro el numero de barras que se
 desea que tenga el histograma
 y luego se utiliza dicho valor para dividir el rango de valores en partes iguales.
+Esto se realiza al inicializar el estimador en la función \textit{build\_struct}, la cual a su vez delega esta tarea
+a otras 3 funciones
+\begin{itemize}
+\item \textbf{compute\_range}: La cual calcula la cantidad de valores que abarcará cada barra. Al conjunto de valores asociado
+a cada barra lo llamamos \textit{bucket} y la cantidad de elementos que contiene \textit{step}.
+\begin{verbatim}
+    def compute_range(self):
+        self.num_buckets = min(self.parameter, self.max - self.min + 1) #evita que haya mas buckets que valores
+        self.step        = float(self.max - self.min) / self.num_buckets
+\end{verbatim}
+\item \textbf{compute\_bucket\_ranges} En donde se calcula para cada barra, los límites del intervalo de valores
+que abarca.
+\begin{verbatim}
+    def compute_bucket_ranges(self):
+        for i in [0..self.num_buckets):
+            low  = self.min + int(self.step * i)
+            high = self.min + int(self.step * (i + 1)) - 1
+            if i == self.num_buckets - 1:
+                high = self.max
+            bucket_ranges[i] = (low, high)
+\end{verbatim}
+\item \textbf{compute\_buckets} Se encarga de computar para cada intervalo la cantidad de registros cuyo valor está dentro del mismo.   
+\end{itemize}
+\begin{verbatim}
+    def compute_buckets(self):
+        for range in self.bucket_ranges:
+            self.buckets[i] =  execute('SELECT COUNT(*) FROM self.table
+                                        WHERE self.column >= range.low
+                                        AND self.column <= range.high')
+\end{verbatim}
+
 Para calcular la selectividad por igualdad se asume que todos los valores que pertenecen a
 la misma barra tienen la
  misma cantidad de registros, por lo que se divide el numero de registros de dicha barra
@@ -205,9 +236,9 @@ cualquier búsqueda por mayor o menor donde el valor del atributo utilizado caig
 tendrá un error posible alto, ya que, el cálculo de la selectividad se realiza tomando el punto medio entre la selectividad que dará el 
 intervalo siguiente y el anterior, haciendo que, en el caso de tener una cantidad importante de tuplas, como sería tener la mayor cantidad de las tuplas concentradas en la barra, la división a la mitad del intervalo, dará como máximo, un error de 0.5 en la selectividad.
 
-Al contrario de Classic Histogram, Distribution Steps presenta una mejor pérformance ante esta distribución en igualdad de \texit{steps} y \textit{barras}. Esto se debe a que no sufre del problema de los bloques de gran altura. Esto ocurre porque el estimador construye bloques o \textit{steps} de misma altura o cantidad de tuplas, haciendo que el problema antes descripto para Classic Histogram no ocurra, resultando en un error de estimación de la selectividad menor.
+Al contrario de Classic Histogram, Distribution Steps presenta una mejor pérformance ante esta distribución en igualdad de \textit{steps} y \textit{barras}. Esto se debe a que no sufre del problema de los bloques de gran altura. Esto ocurre porque el estimador construye bloques o \textit{steps} de misma altura o cantidad de tuplas, haciendo que el problema antes descripto para Classic Histogram no ocurra, resultando en un error de estimación de la selectividad menor.
 
-Ambos estimadores tenderán a una diferencia baja en la pérfomance medida a medida que se incrementa la cantidad de bloques mediante el parámetro de los estimadores. Considerando que el máximo error estimado para Distribution Steps será de 1/S con S cantidad de \texit{steps} para los casos tanto de igualdad como de mayor o menor y A/2 con A altura de la barra o intervalo donde se encuentra el valor del atributo a buscar la selectividad al usar el estimador Classic Histogram con mayor o menor, y al tener barras de gran altura a comparación de sus vecinos por ser distribución normal, el error de Distribution Steps deberá encontrar una precisión más alta más rápidamente que Classic Histogram ya que el incremento de S reduce el error más rápido que el decremento de A al agrandarse los bloques.
+Ambos estimadores tenderán a una diferencia baja en la pérfomance medida a medida que se incrementa la cantidad de bloques mediante el parámetro de los estimadores. Considerando que el máximo error estimado para Distribution Steps será de 1/S con S cantidad de \textit{steps} para los casos tanto de igualdad como de mayor o menor y A/2 con A altura de la barra o intervalo donde se encuentra el valor del atributo a buscar la selectividad al usar el estimador Classic Histogram con mayor o menor, y al tener barras de gran altura a comparación de sus vecinos por ser distribución normal, el error de Distribution Steps deberá encontrar una precisión más alta más rápidamente que Classic Histogram ya que el incremento de S reduce el error más rápido que el decremento de A al agrandarse los bloques.
 
 \subsection{Dataset con distribución uniforme}
 El estimador Classic Histogram, a la hora de construir sus \textit{barras} o bloques, como la distribución es uniforme en el rango, tendrá \textit{barras} de igual altura, eliminando la ocurrencia del problema mencionado en el Dataset con distribución normal, ya que ahora, al tener la misma altura, se minimiza en promedio, el punto medio entre el intervalo siguiente y el anterior, que resultará en el cálculo de la selectividad, haciendo que el error se reduzca considerablemente.
