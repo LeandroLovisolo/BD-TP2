@@ -158,7 +158,7 @@ Es decir, al inicializar el estimador, se le pasa como parámetro el numero de b
 desea que tenga el histograma
 y luego se utiliza dicho valor para dividir el rango de valores en partes iguales.
 Esto se realiza al inicializar el estimador en la función \textit{build\_struct}, la cual a su vez delega esta tarea
-a otras 3 funciones
+a otras 3 funciones:
 \begin{itemize}
 \item \textbf{compute\_range}: La cual calcula la cantidad de valores que abarcará cada barra. Al conjunto de valores asociado
 a cada barra lo llamamos \textit{bucket} y la cantidad de elementos que contiene \textit{step}.
@@ -188,13 +188,37 @@ que abarca.
                                         AND self.column <= range.high')
 \end{verbatim}
 
-Para calcular la selectividad por igualdad se asume que todos los valores que pertenecen a
-la misma barra tienen la
- misma cantidad de registros, por lo que se divide el numero de registros de dicha barra
-  por la cantidad total y el numero de elementos por barra.
-% no dividimos a su vez por el ancho de la barra ? SI %
+Para calcular la selectividad por igualdad se aproxima utilizando la selectividad promedio del \textit{bucket}, por lo que se divide el número de registros correspondientes a dicha barra por la cantidad total y luego por el \textit{step}.
+
+La función \textit{bucket\_for} retorna el índice del \textit{bucket} correspondiente al valor que se le pasa como parámetro.
+
+\begin{verbatim}
+    def estimate_equal(self, value):
+        if value > self.max or value < self.min:
+            return 0
+        bucket = self.buckets[self.bucket_for(value)]
+        return bucket / self.step / self.total
+
+\end{verbatim}
+
 Siguiendo la misma idea, para calcular la selectividad por mayor se suman todos los
-registros que corresponden a las barras superiores a la que pertenece el elemento, mas los que se estima que son mayores dentro de la misma barra. Esto se calcula en base a la diferencia con el limite superior del intervalo que lo contiene.
+registros que corresponden a las barras superiores a la que pertenece el elemento, mas los que se estima que son mayores dentro de la misma barra, lo cual se aproxima tomando la mitad de los registros del intervalo. 
+%Esto se calcula en base a la diferencia con el limite superior del intervalo que lo contiene, dividiéndola luego por el step.
+Luego se le resta a esta estimación, la mitad de la estimación de igualdad para preservar la propiedad de \textbf{consistencia} del estimador.
+
+\begin{verbatim}
+    def estimate_greater(self, value):
+        if value > self.max:
+            return 0
+        elif value < self.min:
+            return 1
+        bucket = self.bucket_for(value)
+        greater = self.buckets[bucket] / 2
+        for i in [bucket + 1, self.num_buckets):
+            greater += self.buckets[i]
+        return greater / self.total - self.estimate_equal(value) / 2
+\end{verbatim}
+
 
 \subsection{Distribution Steps}
 
