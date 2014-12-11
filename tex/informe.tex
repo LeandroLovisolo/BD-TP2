@@ -197,23 +197,22 @@ El estimador por mayor valor funciona de forma similar al de distribution steps.
 \section{Análisis Teórico}
 
 \subsection{Dataset con distribucion normal}
-El estimador Classic Histogram presenta una baja pérfomance bajo una distribución normal, en especial, a la hora de realizar operaciones de mayor o menor.
-Esto sucede debdio a que, al ser la altura de los bloques del histograma variables, cualquier búsqueda por mayor o menor que caiga en un bloque
-donde la altura es importante, tendrá un error alto, ya que, el cálculo de la selectividad se realiza tomando el punto medio entre la selectividad que dará
-el intervalo siguiente y el anterior, haciendo que, en el caso de tener una cantidad importante de tuplas, la división a la mitad del intervalo, dará como máximo,
-un error de 0.5 en la selectividad.
+El estimador Classic Histogram presenta una reducción de precisión bajo una distribución normal, en especial, a la hora de realizar operaciones de mayor o menor.
 
-Al contrario de Classic Histogram, Distribution Steps presentará una mejor pérformance ante esta distribución. Esto se debe a que no sufre del problema
-de los bloques de gran altura. Esto ocurre porque el estimador construye bloques o \textit{steps} de misma altura o cantidad de tuplas, haciendo que el problema 
-antes descripto para Classic Histogram no ocurra resultando en un error de estimación de la selectividad menor.
+Esta reducción se debe a que, por la naturaleza de la distribución, esta tendrá los valores distribuidos en manera de campana, implicando 
+barras de gran altura en el histrograma. Al ser la altura de los bloques o \textit{barras} del histograma variables en el estimador, 
+cualquier búsqueda por mayor o menor donde el valor del atributo utilizado caiga en una barra de gran altura, 
+tendrá un error posible alto, ya que, el cálculo de la selectividad se realiza tomando el punto medio entre la selectividad que dará el 
+intervalo siguiente y el anterior, haciendo que, en el caso de tener una cantidad importante de tuplas, como sería tener la mayor cantidad de las tuplas concentradas en la barra, la división a la mitad del intervalo, dará como máximo, un error de 0.5 en la selectividad.
+
+Al contrario de Classic Histogram, Distribution Steps presenta una mejor pérformance ante esta distribución en igualdad de \texit{steps} y \textit{barras}. Esto se debe a que no sufre del problema de los bloques de gran altura. Esto ocurre porque el estimador construye bloques o \textit{steps} de misma altura o cantidad de tuplas, haciendo que el problema antes descripto para Classic Histogram no ocurra, resultando en un error de estimación de la selectividad menor.
+
+Ambos estimadores tenderán a una diferencia baja en la pérfomance medida a medida que se incrementa la cantidad de bloques mediante el parámetro de los estimadores. Considerando que el máximo error estimado para Distribution Steps será de 1/S con S cantidad de \texit{steps} para los casos tanto de igualdad como de mayor o menor y A/2 con A altura de la barra o intervalo donde se encuentra el valor del atributo a buscar la selectividad al usar el estimador Classic Histogram con mayor o menor, y al tener barras de gran altura a comparación de sus vecinos por ser distribución normal, el error de Distribution Steps deberá encontrar una precisión más alta más rápidamente que Classic Histogram ya que el incremento de S reduce el error más rápido que el decremento de A al agrandarse los bloques.
 
 \subsection{Dataset con distribución uniforme}
-El estimador Classic Histogram, a la hora de construir sus \textit{barras} o bloques, como la distribución es uniforme en el rango, tendrá \textit{barras}
-de igual altura, eliminando la ocurrencia del problema mencionado en el Dataset con distribución normal, ya que ahora, al tener la misma altura, se minimiza
-el punto medio de donde se sacará la selectividad, haciendo que el error reduzca considerablemente.
+El estimador Classic Histogram, a la hora de construir sus \textit{barras} o bloques, como la distribución es uniforme en el rango, tendrá \textit{barras} de igual altura, eliminando la ocurrencia del problema mencionado en el Dataset con distribución normal, ya que ahora, al tener la misma altura, se minimiza en promedio, el punto medio entre el intervalo siguiente y el anterior, que resultará en el cálculo de la selectividad, haciendo que el error se reduzca considerablemente.
 
-En esta distribución, ambos estimadores tendrán sus bloques de igual tamaño, por lo que el problema que sufría anteriormente Classic Histogram no está
-presente para mostrar una diferencia significativa entre estimadores.
+En esta distribución, ambos estimadores tendrán sus bloques de igual tamaño, por lo que el problema que sufría anteriormente Classic Histogram no está presente para mostrar una gran diferencia entre estimadores.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
