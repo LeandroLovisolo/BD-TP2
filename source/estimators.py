@@ -48,13 +48,14 @@ class ClassicHistogram(Estimator):
 
     def compute_bucket_ranges(self):
         self.buckets = [0 for i in range(0, self.num_buckets)]
-        self.bucket_ranges = [(int(self.min + self.step * i),
-                               int(self.min -1 + (self.step * (i + 1))))
-                              for i in range(0, self.num_buckets)]
-        #Increments last bucket's max
-        self.bucket_ranges[-1] =  (self.bucket_ranges[-1][0], self.bucket_ranges[-1][1]+1)
-        #print 'Last bucket range: ' + str(self.bucket_ranges[-1][0]) + ' ' + str(self.bucket_ranges[-1][1])
 
+        self.bucket_ranges = []
+        for i in range(0, self.num_buckets):
+            low  = self.min + int(self.step * i)
+            high = self.min + int(self.step * (i + 1)) - 1
+            if i == self.num_buckets - 1:
+                high = self.max
+            self.bucket_ranges.append((low, high))
 
     def compute_buckets(self):
         c = self.conn.cursor()
