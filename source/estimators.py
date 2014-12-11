@@ -94,10 +94,11 @@ class ClassicHistogram(Estimator):
         #print 'Bucket numero: ' + str(bucket)
         #print '[bucket][0]: ' + str(self.bucket_ranges[bucket][0]) + '[bucket][1]' + str(self.bucket_ranges[bucket][1])
         #print '[bucket][1] - value: ' + str(self.bucket_ranges[bucket][1] - value)
-        factor = float(self.bucket_ranges[bucket][1] - value) / self.step
+        factor = self.bucket_ranges[bucket][1] - value / self.step
         #print 'Factor: ' + str(factor)
         
-        greater = float(self.buckets[bucket]) * factor
+        #greater = float(self.buckets[bucket]) * factor
+        greater = self.buckets[bucket] * 0.5
         #print 'Greater inicial: ' + str(greater)
         #greater = float(self.buckets[bucket]) / 2
         for i in range(bucket + 1, len(self.buckets)):
