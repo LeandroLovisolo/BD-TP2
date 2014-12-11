@@ -292,6 +292,7 @@ donde se utiliza una distribución uniforme. Sin embargo, con sucesivos incremen
 \grafico{plot-diststep-uniform-greater}
         {Distribución uniforme, consulta por mayor.}
         {plot-diststep-uniform-greater}
+
 \grafico{plot-diststep-normal-equal}
         {Distribución normal, consulta por igualdad.}
         {plot-diststep-normal-equal}
@@ -299,6 +300,16 @@ donde se utiliza una distribución uniforme. Sin embargo, con sucesivos incremen
         {Distribución normal, consulta por mayor.}
         {plot-diststep-normal-greater}
 
+De la observación de los resultados presentados en las figuras \ref{plot-diststep-uniform-equal}, \ref{plot-diststep-uniform-greater}, 
+\ref{plot-diststep-normal-equal}, \ref{plot-diststep-normal-greater} se puede ver que no hay casi diferencia entre utilizar el estimador 
+en una distribución normal o en una distribución uniforme.
+
+En ambas distribuciones, un valor bajo del parámetro implica una pérfomance alta a comparación de la pérfomance obtenida al 
+incrementar el parámetro. La curva de pérfomance es de carácter logarítmico inverso, siendo las diferencias en pérfomance más bajas
+al aproximarse a la selectividad correcta.
+
+Por último, puede notarse que en ambas distribuciones, el cálculo de igualdad obtiene una mejor aproximación a la selectividad real 
+que para el cálculo de la selectividad por mayor.
 
 \subsection{Estimador \texttt{EstimadorGrupo}}
 
