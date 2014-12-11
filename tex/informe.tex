@@ -157,6 +157,37 @@ de valores del mismo tamaño.
 Es decir, al inicializar el estimador, se le pasa como parámetro el numero de barras que se
 desea que tenga el histograma
 y luego se utiliza dicho valor para dividir el rango de valores en partes iguales.
+Esto se realiza al inicializar el estimador en la función \textit{build\_struct}, la cual a su vez delega esta tarea
+a otras 3 funciones
+\begin{itemize}
+\item \textbf{compute\_range}: La cual calcula la cantidad de valores que abarcará cada barra. Al conjunto de valores asociado
+a cada barra lo llamamos \textit{bucket} y la cantidad de elementos que contiene \textit{step}.
+\begin{verbatim}
+    def compute_range(self):
+        self.num_buckets = min(self.parameter, self.max - self.min + 1) #evita que haya mas buckets que valores
+        self.step        = float(self.max - self.min) / self.num_buckets
+\end{verbatim}
+\item \textbf{compute\_bucket\_ranges} En donde se calcula para cada barra, los límites del intervalo de valores
+que abarca.
+\begin{verbatim}
+    def compute_bucket_ranges(self):
+        for i in [0..self.num_buckets):
+            low  = self.min + int(self.step * i)
+            high = self.min + int(self.step * (i + 1)) - 1
+            if i == self.num_buckets - 1:
+                high = self.max
+            bucket_ranges[i] = (low, high)
+\end{verbatim}
+\item \textbf{compute\_buckets} Se encarga de computar para cada intervalo la cantidad de registros cuyo valor está dentro del mismo.   
+\end{itemize}
+\begin{verbatim}
+    def compute_buckets(self):
+        for range in self.bucket_ranges:
+            self.buckets[i] =  execute('SELECT COUNT(*) FROM self.table
+                                        WHERE self.column >= range.low
+                                        AND self.column <= range.high')
+\end{verbatim}
+
 Para calcular la selectividad por igualdad se asume que todos los valores que pertenecen a
 la misma barra tienen la
  misma cantidad de registros, por lo que se divide el numero de registros de dicha barra
