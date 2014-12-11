@@ -205,7 +205,7 @@ de los bloques de gran altura. Esto ocurre porque el estimador construye bloques
 antes descripto para Classic Histogram no ocurra resultando en un error de estimación de la selectividad menor.
 
 \subsection{Dataset con distribución uniforme}
-El estimador Classic Histogram, a la hora de construir sus \texit{barras} o bloques, como la distribución es uniforme en el rango, tendrá \texit{barras}
+El estimador Classic Histogram, a la hora de construir sus \textit{barras} o bloques, como la distribución es uniforme en el rango, tendrá \textit{barras}
 de igual altura, eliminando la ocurrencia del problema mencionado en el Dataset con distribución normal, ya que ahora, al tener la misma altura, se minimiza
 el punto medio de donde se sacará la selectividad, haciendo que el error reduzca considerablemente.
 
@@ -220,7 +220,14 @@ presente para mostrar una diferencia significativa entre estimadores.
 
 \section{Análisis Empírico}
 
-Pendiente.
+\subsection{Experimentación}
+Para los resultados generados, se utilizaron los estimadores Classic Histogram, Distribution Steps y el Estimador Grupo 
+sobre la distribución normal y la distribución uniforme de las figuras \ref{custom-dataset-uniform} y 
+\ref{custom-dataset-uniform} respectivamente, generadas aleatoriamente. 
+
+Se utilizaron queries 50 queries para la evaluación de la selectividad en intervalos de 20 (\textbf{Sel(}=0\textbf{)}, \textbf{Sel(}=19\textbf{)}, ...) y se corrieron tanto para la selectividad por igual como para mayor, con valores del 
+parámetro de los estimadores entre 5 y 100 en intervalos de 5.
+
 
 
 \subsection{Datasets utilizados}
@@ -238,12 +245,27 @@ A continuación se ilustran los datasets utilizados durante el análisis de perf
 
 \subsection{Estimador \texttt{ClassicHistogram}}
 
+\subsubsection{Distribución uniforme}
+
 \grafico{plot-hist-uniform-equal}
         {Distribución uniforme, consulta por igualdad.}
         {plot-hist-uniform-equal}
 \grafico{plot-hist-uniform-greater}
         {Distribución uniforme, consulta por mayor.}
         {plot-hist-uniform-greater}
+
+En las figuras \ref{plot-custom-uniform-greater} y \ref{plot-hist-uniform-equal} se pueden observar valores muy bajos
+en la pérfomance, acompañados de una gran varianza. En ambas figuras, se puede ver como al iniciar con un valor en parámetro bajo,
+la pérformance es más alta, como es de esperarse, ya que, aumentar este valor debería producir una reducción de la pérformance al obtener más precisión.
+Atribuímos la gran varianza y anomalías aparentes como pequeñas montañas en los gráficos como pueden verse en los
+valores del parámetro 35 y 70 de la figura \ref{plot-hist-uniform-equal} por ejemplo, a errores de punto flotante en el cálculo de la selectividad 
+y en el armado del estimador.
+El método de predicción de selectividad elejido para la igualdad genera una pérformance muy baja, obteniéndose resultados satisfactorios y similares para
+todos los valores probados del parámetro.
+
+\subsubsection{Distribución normal}
+
+
 \grafico{plot-hist-normal-equal}
         {Distribución normal, consulta por igualdad.}
         {plot-hist-normal-equal}
@@ -251,6 +273,16 @@ A continuación se ilustran los datasets utilizados durante el análisis de perf
         {Distribución normal, consulta por mayor.}
         {plot-hist-normal-greater}
 
+Las figuras \ref{plot-hist-normal-equal} y \ref{plot-hist-normal-greater} de selectividad por igualdad y por mayor respectivamente, evidencian la diferencia 
+de pérfomance que implica analizar la distribución normal con este estimador.
+
+Como se vió en el análisis teórico anteriormente, la búsqueda de selectividad por mayor, que podía obtener un error máximo 
+alto en la selectividad en esta distribución, en especial con valores del parámetro bajo, muestra en la figura \ref{plot-hist-normal-greater} una pérfomance alta 
+que decrece contínuamente a medida que se incrementa el valor del parámetro, como era de esperarse, debido a que intervalos más chicos implican 
+mayor precisión en la selectividad por mayor.
+
+Por el lado de la igualdad, se muestra una pérfomance alta con un varianza alta con valores bajos del parámetro a comparación de la figura \ref{plot-hist-uniform-equal} 
+donde se utiliza una distribución uniforme. Sin embargo, con sucesivos incrementos en el parámetro, el aumento se precisión evidencia una mejora notable.   
 
 \subsection{Estimador \texttt{DistributionSteps}}
 
