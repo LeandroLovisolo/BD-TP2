@@ -164,7 +164,8 @@ a otras 3 funciones:
 a cada barra lo llamamos \textit{bucket} y la cantidad de elementos que contiene \textit{step}.
 \begin{verbatim}
     def compute_range(self):
-        self.num_buckets = min(self.parameter, self.max - self.min + 1) #evita que haya mas buckets que valores
+    	#evita que haya mas buckets que valores
+        self.num_buckets = min(self.parameter, self.max - self.min + 1)
         self.step        = float(self.max - self.min) / self.num_buckets
 \end{verbatim}
 \item \textbf{compute\_bucket\_ranges} En donde se calcula para cada barra, los límites del intervalo de valores
@@ -222,14 +223,52 @@ Luego se le resta a esta estimación, la mitad de la estimación de igualdad par
 
 \subsection{Distribution Steps}
 
-En este caso se busca obtener un histograma con barrasde la misma altura variando el
+En este caso se busca obtener un histograma con barras de la misma altura variando el
 tamaño de los intervalos que representa cada barra. De esta forma se busca tener mayor
- granularidad al en el caso de que para algunos valores tengamos mucha cantidad de
- registros y para otros no. para esto se arma un histograma dividiendo la cantidad de
- registros de la tabla N grupos de igual tamaño, siendo N pasado por parámetro al
- inicializarlo. Además se quiere que la suma de las estimaciones de las selectividades
- por moyor, menos e igual de un mismo valor sumen 1.
-Por lo tanto para calcular la estimación de elementos mayores se asume que 1/3 de los
+ granularidad en el caso de que para algunos valores tengamos mucha cantidad de
+ registros y para otros no. Entonces se arma un histograma dividiendo la cantidad de
+ registros de la tabla en N grupos de igual tamaño, siendo N pasado por parámetro al
+ inicializarlo. 
+ 
+ En nuestra implementación utilizamos una lista llamada \textit{steps} en la cual, en cada posicion, se guarda el valor mínimo de dicho \textit{bucket}. Luego se agrega un último índice que contiene el valor máximo.
+\begin{verbatim}
+    def build_struct(self):
+        self.items_per_step = ceil(float(self.total) / self.num_steps)
+        all_in_order = c.execute('SELECT self.column 
+        						FROM self.table 
+        						ORDER BY self.column ASC')
+        for current_step in [0, self.num_steps):
+            if current_step == self.num_steps -1 :
+                rows_for_step = c.fetchall()
+                self.steps[self.num_steps] = rows_for_step.last.value
+            else:
+                rows = c.fetchmany(self.items_per_step)
+            self.steps[current_step] = rows_for_step.first.value
+\end{verbatim}
+Luego para calcular la estimación por igualdad se aproxima como tomando como si 1/3 de los elementos del bucket fueran iguales al valor buscado en caso de que no coincida con el límite inferior de ningún intervalo. Si coincide con uno o más límites se aproxima como si todos esos intervalos contuvieran ese valor.
+\begin{verbatim}
+    def estimate_equal(self, value):
+        if value < self.steps[0]:
+            return 0
+        if value >= self.steps[self.num_steps]:
+            return 0
+        for step in [0, self.num_steps + 1):
+            if self.steps[step] > value:
+                return 1 / (3 * self.num_steps)
+            elif self.steps[step] == value:
+                if 0 < step < self.num_steps and self.steps[step + 1] != value:
+                    return 1.0 / self.num_steps
+                else:
+                    k = 0
+                    while len(self.steps) > step + k + 1 and self.steps[step + k + 1] == value:
+                        k += 1
+                    if 0 < step and self.steps[self.num_steps] != value:
+                        return k / self.num_steps
+                    else:
+                        return (k - 0.5) / self.num_steps
+\end{verbatim}
+ 
+Para calcular la estimación de elementos mayores se aproxima tomando como que que 1/3 de los
 elementos del intervalo son mayores si el valor que se evalúa no es límite de un
 intervalo. Para estimar la selectividad de la igualdad, se asume que aproximadamente
  1/3 de los elementos pertenecientes al grupo, son iguales al valor buscado,
