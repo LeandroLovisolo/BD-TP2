@@ -377,26 +377,26 @@ Además en todos los casos, para preservar la propiedad de consistencia, se modi
 El estimador Classic Histogram presentará una reducción de precisión bajo una distribución normal, en especial, a la hora de realizar operaciones de mayor. Esto se debe a lo siguiente:
 
 \begin{itemize}
-\item La naturaleza de la distribución implica que se tendrán valores distribuídos en forma de campana, implicando barras de gran altura en el histograma.
+\item La naturaleza de la distribución implica que se tendrán valores distribuidos en forma de campana, implicando barras de gran altura en el histograma.
 \item Para el cálculo de la selectividad mayor, el estimador toma la mitad del intervalo donde cae el valor buscado, más los demás intervalos necesarios, esto concluye con un error de A/2 siendo A la altura de la barra donde se encuentra el valor a buscar.
-\item Para la consulta de selectividad por igualdad, se divide la altura de la barra donde cae el valor a estimar por el ancho de la barra y luego por el total de los registros en la relación. Se realiza esta aproximación suponiendo un promedio de elementos en el rango. Eventualmente podrían ser todos los elementos de la barra el que se está buscando, obteniendose un error máximo de A/Total - (A/Width/Total) siendo A la altura del bucket, Width su ancho y Total la cantidad de registros en la relación.
+\item Para la consulta de selectividad por igualdad, se divide la altura de la barra donde cae el valor a estimar por el ancho de la barra y luego por el total de los registros en la relación. Se realiza esta aproximación suponiendo un promedio de elementos en el rango. Eventualmente podrían ser todos los elementos de la barra el que se está buscando, obteniéndose un error máximo de A/Total - (A/Width/Total) siendo A la altura del bucket, Width su ancho y Total la cantidad de registros en la relación.
 \end{itemize}
 
 Estos errores máximos basados en la altura de los buckets resultarán en una baja en la pérformance promedio.
 
 Al contrario de Classic Histogram, Distribution Steps debería exhibir una mejor pérformance ante esta distribución en igualdad de \textit{steps} y \textit{barras}. Esto se debe a que no sufre del problema de los bloques de gran altura. Como puede verse en la descripción del estimador, este construye sus \textit{steps} de misma altura, haciendo que el problema antes descripto para Classic Histogram no ocurra, resultando en un error de estimación de la selectividad menor.
 
-El comportamiento de Estimador Grupo será idéntico a Distribution Steps para las consultas de mayor. En el caso de la igualdad, Estimador Grupo se comporta de manera similar a Classic Histogram, pero no sufre del problema de las columnas altas debido a que todos sus steps tienen igual altura, obteniendo una mejor pérformance en este caso.
+El comportamiento de Estimador Grupo será similar a Distribution Steps para las consultas de mayor. En el caso de la igualdad, Estimador Grupo se comporta de manera similar a Classic Histogram, pero no sufre del problema de las columnas altas debido a que todos sus steps tienen igual altura, obteniendo una mejor pérformance en este caso.
 
 Dada las magnitudes posibles de los errores, Distribution Steps debería exhibir un mejor desempeño.
 
 \subsection{Dataset con distribución uniforme}
 
-Debido a la distribución uniforme de los datos en el rango, el estimador Classic Histogram, presentará a la hora de construir sus \textit{barras}, de igual altura. Como mencionamos en el análisis del Dataset de distribución normal, el error que presentará este estimador está ligado con la altura de las barras que posea. Al obtener ahora \textit{barras} de igual altura se elimina la ocurrencia del problema mencionado en el Dataset con distribución normal, el error del cálculo de la selectividad tanto para mayor como para igual se verá disminuído en promedio. 
+Debido a la distribución uniforme de los datos en el rango, el estimador Classic Histogram, presentará a la hora de construir sus \textit{barras}, de igual altura. Como mencionamos en el análisis del Dataset de distribución normal, el error que presentará este estimador está ligado con la altura de las barras que posea. Al obtener ahora \textit{barras} de igual altura se elimina la ocurrencia del problema mencionado en el Dataset con distribución normal, el error del cálculo de la selectividad tanto para mayor como para igual se verá disminuido en promedio. 
 
 El estimador Distribution steps no se verá influenciado por el cambio de distribución, siempre distribuye los datos en steps con igual cantidad de registros como mencionamos anteriormente, y tiene un error máximo en el cálculo de la selectividad de 1/S, siendo S la cantidad de steps o el parámetro de la distribución.
 
-Por último, el Estimador Grupo exhibirá un comportamiento similar a Classic Histogram a la hora de realizar la selectividad por igualdad, por lo que obtendrá el mismo error máximo en esta consulta. Lo mismo sucede con el cálculo de selectividad por mayor, el cuál obtendrá los mismos resultados que distribution steps.
+Por último, el Estimador Grupo exhibirá un comportamiento similar a Classic Histogram a la hora de realizar la selectividad por igualdad, por lo que obtendrá un resultado considerablemente bueno. Algo similar sucede con el cálculo de selectividad por mayor, el cuál obtendrá los mismos resultados que distribution steps.
 
 En esta distribución, aunque los errores se vean reducidos, el error máximo de Distribution Steps para la selectividad por mayor será menor que el de Classic Histogram e igual que Estimador Grupo, pudiendo ambos estimadores desempeñarse mejor que Classic Histogram.
 
@@ -404,6 +404,21 @@ Por la parte de igualdad, Classic Histogram deberá exhibir buenos resultados. E
 
 Concluimos que Estimador Grupo deberá tener la mejor pérfomance en este caso.
 
+\subsection{Peores casos para los estimadores}
+
+Por lo discutido anteriormente en la sección del Dataset con distribución normal, Classic Histogram presentará mayor error cuanto mayor sea la variación de tamaño entre alturas de las barras que posea el estimador. Distribuciones que concentren casi la totalidad de sus registros en un solo valor, harán que el estimador posea un barra de gran altura y las demás de baja.
+
+Supongamos una distribución que cumpla con lo mencionado. La distribución a evaluar contiene casi la totalidad de sus registros en un solo valor, al evaluar la selectividad utilizando el estimador, es posible notar lo siguiente:
+\begin{itemize}
+\item Utilizando el cálculo del error máximo para el cálculo por mayor (A/2), siendo A la altura, y suponiendo que el valor a buscar entre en el intervalo de la barra de mayor altura, el cálculo resulta en un error aproximado de 0.5, maximizando el error posible que se puede obtener en la utilización de este tipo de query de selectividad para el estimador.
+\item Para el cálculo por igualdad, ocurre algo similar, al ser el error A/Total - (A/Width/Total), siendo A cercano al valor \textit{Total} de tuplas en la relación el error aproximado será considerablemente alto, cercano a 1, maximizando el error posible.
+\end{itemize}
+
+El estimador Distribution Steps es inmune a todo tipo de cambio de distribuciones. El cálculo de su error se base exclusivamente en la cantidad de \textit{steps} o divisiones que posea el estimador en base a su parámetro. No existe una distribución que maximize su error de estimación.
+
+El Estimador Grupo exhibirá para una distribución similar a la presentada para Classic Histogram, un error máximo en el cálculo de selectividad por igualdad. Esto ocurre debido a que realiza un cálculo similar a Classic Histogram basándose en el promedio posible de valores que habrá en el rango de los steps, obteniéndose en el caso de pedir la selectividad por igualdad y al encontrarse el valor buscado dentro de un step que tenga todos valores iguales, el error máximo que podría obtener el estimador para este tipo de selectividad. 
+
+Por último, el Estimador Grupo obtendrá incluso una disminución en precisión para el cálculo por mayor. Si bien es similar a distribution steps, utiliza para algunos casos el cálculo utilizado en Classic Histogram, acarreando parte del error explicado anteriormente.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Análisis Empírico                                                          %%
@@ -567,7 +582,7 @@ A continuación ilustramos los datasets correspondientes a cada columna de la ta
 \subsection{Comparación de eficacia entre estimadores}
 Para cada una de las columnas provistas por la cátedra, se realizaron para cada estimador, para las selectividades de mayor e igual y para diferentes valores en el parámetros de los estimadores, \textit{Student’s T-Test Apareados} con el objetivo de determinar como varía el p-valor en la comparaciones de pérformance entre los estimadores para estas variables.
 
-El test se realizó en condiciones similares a la experimentación realizada para visualizar la pérfomance de los estimadores bajo las distrubiciones normal y uniforme, utilizando aproximadamente 50 queries para cada uno de los 10 valores del parámetro de los estimadores utilizados, para luego usar esa información con las funciones que provee \textit{SciPy} para realizar los \textit{Student’s T-Test Apareados}.
+El test se realizó en condiciones similares a la experimentación realizada para visualizar la pérfomance de los estimadores bajo las distribuciones normal y uniforme, utilizando aproximadamente 50 queries para cada uno de los 10 valores del parámetro de los estimadores utilizados, para luego usar esa información con las funciones que provee \textit{SciPy} para realizar los \textit{Student’s T-Test Apareados}.
 
 Las comparaciones que no son fácilmente visualizables en los gráficos muestran un p-valor extremadamente pequeño, implicando una significancia importante.
 
@@ -622,11 +637,13 @@ Se traza en los gráficos una línea \textit{dashed} en 0.05 para reflejar el um
 
 %En base al analisis previo y la experimentacion realizada sobre los estimadores discutir qu e metodo es mejor para cada tipo de distribucion de datos.
 Luego de realizar las pruebas previamente expuestas y de analizar los resultados arrojados por las mismas pudimos observar que el algoritmo de \textit{Classic Histogram}
-tiene un muy buen comportamiento sólo para la distribución uniforme, pero incluso con valores bajos del parámetro. Por otro lado, para dicha distribución el algoritmo de \textit{Distribution Steps} tiene una performance muy mala para valores bajos del parámetro y luego mejora con valores mayores. Nuestro estimador mejora ese aspecto con respecto al \textit{Distribution Steps}, pero sin llegar a ser como \textit{Classic Histogram}. Por lo tanto para este tipo de distribuciones el de mejor comportameinto es sin dudas el \textit{Classic Histogram}.
+tiene un muy buen comportamiento sólo para la distribución uniforme, en especial para valores bajos del parámetro. Por otro lado, para dicha distribución el algoritmo de \textit{Distribution Steps} tiene una performance muy mala para valores bajos del parámetro y luego mejora con valores mayores. Nuestro estimador mejora ese aspecto con respecto al \textit{Distribution Steps}, pero sin llegar a ser como \textit{Classic Histogram}. Por lo tanto para este tipo de distribuciones el de mejor comportameinto es sin dudas el \textit{Classic Histogram}. Esta relación está respaldada por la figura \ref{student-columna-c0} que evidencia que los resultados entre \textit{Classic Histogram} y \textit{Distribution Steps} son significativos para la columna C0 de distribución uniforme.
 
-Para distribuciones con valores mas irregulares en  cambio, la performance de \textit{Classic Histogram} se degrada mucho y se observa a su vez un aumento de la varianza
-en sus estimaciones. Por otro lado el rendimiento de los otros estimadores se mantiene prácticamente igual que con la distribución uniforme, observándose un mejor comportamiento de las estimaciones por igualdad de nuestro estimador respecto a las de \textit{Distribution Steps}; y el comportamiento inverso para estimaciones por mayor.
-Por estos motivos, para distribuciones más irregulares se toma como mejor el algoritmo de \textit{Distribution Steps} si predominan consultas por mayor y nuestro estimador si las que predominan son las consultas por igualdad. Asimismo, para el caso general, o con una distribución desconocida, sería mejor tambien utilizarlos de la misma manera, ya que su performance se mantiene de forma bastante independiente respecto a la distibución de los datos.
+Para distribuciones con valores mas irregulares en cambio, la performance de \textit{Classic Histogram} se degrada mucho y se observa a su vez un aumento de la varianza en sus estimaciones. Variaciones especiales como las descriptas en el análisis teórico influencian tanto a \textit{Classic Histogram} como al \textit{Estimador Grupo}, pero el rendimiento de este último es notablemente mejor. Por otro lado el rendimiento de \textit{Distribution Steps} se mantiene igual para las diferentes distribuciones. El \textit{Estimador Grupo} presenta mejores estimaciones en general, para los casos donde no existe una gran concentración de valores, superando a \textit{Distribution Steps}.
+
+Por estos motivos, si no se tiene ningún conocimiento sobre las distribuciones, el algoritmo de \textit{Distribution Steps} es la mejor opción, ya que su error máximo siempre estará acotado por la cantidad de \textit{steps} que posea y no por los valores de las distribuciones.
+
+Para el caso de que se tenga conocimiento sobre la distribución, y esta no posea una concentración importante de datos entorno a un solo valor, concluimos que el \textit{Estimador Grupo} resolverá en mejor medida tanto las consultas de igualdad como por mayor.
 %Comentar si existe un m etodo que se comporte mejor para el caso general (un dataset con distribuci ́on desconocida).
 %Discutir qúe otros factores hay que tener en cuenta para emplear los estimadores, por ejemplo, tiempo de construcci ́on, costo de mantenimiento, etc.
 
@@ -645,8 +662,10 @@ Por lo tanto, si la base de datos va a tener una gran cantidad de actualizacione
 
 \section{Conclusiones}
 A lo largo de este trabajo pudimos apreciar distintos maneras de implementar estimadores para la selectividad de las consultas a una base de datos.
-El objetivo del desarollo de los mismos es el de usar la información que proveen para optimizar las consultas a la base y así responder con mayor velocidad. Por lo tantoun requisito fundamental de los estimadores es que su respuesta sea rápida, por lo cual debe realizar calculos simples para obtenerla. Asimismo se espera que la misma sea lo más precisa posible, ya que de caso contrario sería igualmente inútil. Teniendo en cuenta además que si la base sufre cambios en sus valores los estimadores deben adaptarse a ellos para seguir siemdo precisos sin que dicha tarea consuma demasiados recursos que prodrían dedicarse a las búsquedas.
+El objetivo del desarrollo de los mismos es el de usar la información que proveen para optimizar las consultas a la base y así responder con mayor velocidad. Por lo tanto, un requisito fundamental de los estimadores es que su respuesta sea rápida, por lo cual debe realizar cálculos simples para obtenerla. Asimismo se espera que la misma sea lo más precisa posible, ya que de caso contrario sería igualmente inútil. Teniendo en cuenta además que si la base sufre cambios en sus valores los estimadores deben adaptarse a ellos para seguir siendo precisos sin que dicha tarea consuma demasiados recursos que podrían dedicarse a las búsquedas.
 
-Planteados éstos requerimientos se pudieron observar distintos enfoques que cumplen en mayor o menor medida con cada uno de ellos. De ésta forma, dependerá en mayor medida de el uso que se le dé a la base de datos y el conocimiento que se tenga sobre los mismos lo que permitirá la correcta elección del estimador que se desee utilizar. Esta decisión deberá ser tomada en cuenta como importante en el momento de puesta en marcha de la base de datos, y a su vez debería ser evaluada luego de pasado un tiempo de uso para  ver si realmente cumple con las expectativas. Si no lo cumpliese o si los requerimientos de la base cambiaran, existe la posibilidad de cambiarlo siempre evaluando el costo que esto implica.
+Planteados estos requerimientos, se pudieron observar distintos enfoques que cumplen en mayor o menor medida con cada uno de ellos.
+
+Concluimos en que, la elección de los estimadores dependerá en mayor medida de el uso que se le dé a la base de datos y del conocimiento que se tenga sobre la misma. Estimadores como \textit{Distirbution Steps} y \textit{Estimador Grupo} ofrecen una buena precisión para distribuciones desconocidas, en especial \textit{Distirbution Steps}, pero la creación del estimador puede ser costosa al necesitar un ordenamiento de las tuplas, haciéndose difícil su utilización en bases de datos de gran tamaño con variaciones continuas la misma, ya que sería difícil de mantener. El estimador \textit{Classic Histogram} puede ofrecer buenas aproximaciones cuando la distribución tiende a la uniformidad, pero presentará una disminución de la precisión importante en distribuciones donde los valores estén concentrados. A pesar de esto \textit{Classic Histogram} es ideal para bases de datos de gran tamaño, ya que su mantenimiento es muy barato.
 
 \end{document}

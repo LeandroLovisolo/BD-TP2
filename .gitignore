@@ -2,8 +2,9 @@
 *.aux
 *.log
 *.out
+*.idx
 *.pdf
-
+*.toc
 # Python
 *.pyc
 

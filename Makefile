@@ -14,7 +14,7 @@ informe.pdf:
 custom-dataset:
 	cd source; ./generate-custom-datasets.py
 
-plots: plot-custom-datasets plot-performance plot-datasets
+plots: plot-custom-datasets plot-performance plot-datasets plot-significance
 
 plot-custom-datasets:
 	cd source; ./plot-custom-datasets.py
