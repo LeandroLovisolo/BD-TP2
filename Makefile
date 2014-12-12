@@ -35,6 +35,18 @@ plot-performance:
 	cd source; ./plot-performance.py --custom-normal-equal    -o ../tex/plot-custom-normal-equal.pdf
 	cd source; ./plot-performance.py --custom-normal-greater  -o ../tex/plot-custom-normal-greater.pdf
 
+plot-significance:
+	cd source; ./plot-significance.py c0 -o ../tex/plot-significance-c0.pdf
+	cd source; ./plot-significance.py c1 -o ../tex/plot-significance-c1.pdf
+	cd source; ./plot-significance.py c2 -o ../tex/plot-significance-c2.pdf
+	cd source; ./plot-significance.py c3 -o ../tex/plot-significance-c3.pdf
+	cd source; ./plot-significance.py c4 -o ../tex/plot-significance-c4.pdf
+	cd source; ./plot-significance.py c5 -o ../tex/plot-significance-c5.pdf
+	cd source; ./plot-significance.py c6 -o ../tex/plot-significance-c6.pdf
+	cd source; ./plot-significance.py c7 -o ../tex/plot-significance-c7.pdf
+	cd source; ./plot-significance.py c8 -o ../tex/plot-significance-c8.pdf
+	cd source; ./plot-significance.py c9 -o ../tex/plot-significance-c9.pdf
+
 plot-datasets:
 	cd source; ./plot-datasets.py
 

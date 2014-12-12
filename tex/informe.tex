@@ -18,8 +18,10 @@
 \usepackage{multirow}
 \usepackage{hyperref}
 \usepackage{xspace}
+\usepackage{makeidx}
 \usepackage[toc, page]{appendix}
 
+\makeindex
 
 %%%%%%%%%% Constantes - Inicio %%%%%%%%%%
 \newcommand{\titulo}{Trabajo Práctico 2}
@@ -129,6 +131,7 @@ Rebecchi, Alejandro    & 15/10  & alejandrorebecchi@gmail.com\\
 
 \newpage
 
+\printindex
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Introducción                                                               %%
@@ -366,7 +369,15 @@ Además en todos los casos, para preservar la propiedad de consistencia, se modi
 \section{Análisis Teórico}
 
 \subsection{Dataset con distribucion normal}
-El estimador Classic Histogram presenta una reducción de precisión bajo una distribución normal, en especial, a la hora de realizar operaciones de mayor o menor.
+El estimador Classic Histogram presenta una reducción de precisión bajo una distribución normal, en especial, a la hora de realizar operaciones de mayor o menor. Esto se debe a lo siguiente:
+
+\begin{itemize}
+\item La naturaleza de la distribución implica que se tendrán valores distribuídos en forma de campana, implicando barras de gran altura en el histograma.
+\item Para el cálculo de la selectividad mayor o menor, el estimador toma la mitad del intervalo donde cae el valor buscado, más los demás intervalos necesarios, esto concluye con un error de A/2 siendo A la altura de la barra donde se encuentra el valor a buscar.
+\item Para la consulta de selectividad por igualdad, se divide la altura de la barra donde cae el valor a estimar por el ancho de la barra y luego por el total de los registros en la relación. Se realiza esta aproximación suponiendo un promedio de elementos en el rango. Eventualmente podrían ser todos los elementos de la barra el que se está buscando, obteniendo un error máximo de A/Total - (A/Width/Total) siendo A la altura del bucket, Width su ancho y Total la cantidad de registros en la relación.
+\end{itemize}
+
+Estos errores máximos 
 
 Esta reducción se debe a que, por la naturaleza de la distribución, esta tendrá los valores distribuidos en manera de campana, implicando 
 barras de gran altura en el histrograma. Al ser la altura de los bloques o \textit{barras} del histograma variables en el estimador, 
@@ -537,6 +548,55 @@ A continuación ilustramos los datasets correspondientes a cada columna de la ta
         {Columna \emph{c9}}
         {dataset-columna-c9}
 
+
+\subsection{Comparación de eficacia entre estimadores}
+Para cada una de las columnas provistas por la cátedra, se realizaron para cada estimador, para las selectividades de mayor e igual y para diferentes valores en el parámetros de los estimadores, \textit{Student’s T-Test Apareados} con el objetivo de determinar como varía el p-valor en la comparaciones de pérformance entre los estimadores para estas variables.
+
+El test se realizó en condiciones similares a la experimentación realizada para visualizar la pérfomance de los estimadores bajo las distrubiciones normal y uniforme, utilizando aproximadamente 50 queries para cada uno de los 10 valores del parámetro de los estimadores utilizados, para luego usar esa información con las funciones que provee \textit{SciPy} para realizar los \textit{Student’s T-Test Apareados}.
+
+Las comparaciones que no son fácilmente visualizables en los gráficos muestran un p-valor extremadamente pequeño, implicando una significancia importante.
+
+Se traza en los gráficos una línea \textit{dashed} en 0.05 para reflejar el umbral de aceptación. Toda comparación por debajo de esta línea aprobaría la diferencia de pérformance entre ambos estimadores.
+
+\grafico{plot-significance-c0}
+        {Significancia en pérformance entre estimadores para la columna \emph{c0}}
+        {student-columna-c0}
+
+\grafico{plot-significance-c1}
+        {Significancia en pérformance entre estimadores para la columna \emph{c1}}
+        {student-columna-c1}
+
+\grafico{plot-significance-c2}
+        {Significancia en pérformance entre estimadores para la columna \emph{c2}}
+        {student-columna-c2}
+
+\grafico{plot-significance-c3}
+        {Significancia en pérformance entre estimadores para la columna \emph{c3}}
+        {student-columna-c3}
+
+\grafico{plot-significance-c4}
+        {Significancia en pérformance entre estimadores para la columna \emph{c4}}
+        {student-columna-c4}
+
+\grafico{plot-significance-c5}
+        {Significancia en pérformance entre estimadores para la columna \emph{c5}}
+        {student-columna-c5}
+
+\grafico{plot-significance-c6}
+        {Significancia en pérformance entre estimadores para la columna \emph{c6}}
+        {student-columna-c6}
+
+\grafico{plot-significance-c7}
+        {Significancia en pérformance entre estimadores para la columna \emph{c7}}
+        {student-columna-c7}
+
+\grafico{plot-significance-c8}
+        {Significancia en pérformance entre estimadores para la columna \emph{c8}}
+        {student-columna-c8}
+
+\grafico{plot-significance-c9}
+        {Significancia en pérformance entre estimadores para la columna \emph{c9}}
+        {student-columna-c9}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Discusión                                                                  %%
