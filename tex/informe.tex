@@ -18,8 +18,10 @@
 \usepackage{multirow}
 \usepackage{hyperref}
 \usepackage{xspace}
+\usepackage{makeidx}
 \usepackage[toc, page]{appendix}
 
+\makeindex
 
 %%%%%%%%%% Constantes - Inicio %%%%%%%%%%
 \newcommand{\titulo}{Trabajo Práctico 2}
@@ -129,14 +131,7 @@ Rebecchi, Alejandro    & 15/10  & alejandrorebecchi@gmail.com\\
 
 \newpage
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Índice                                                                    %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\tableofcontents
-
-\newpage
+\printindex
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Introducción                                                               %%
@@ -391,7 +386,7 @@ Estos errores máximos basados en la altura de los buckets resultarán en una ba
 
 Al contrario de Classic Histogram, Distribution Steps debería exhibir una mejor pérformance ante esta distribución en igualdad de \textit{steps} y \textit{barras}. Esto se debe a que no sufre del problema de los bloques de gran altura. Como puede verse en la descripción del estimador, este construye sus \textit{steps} de misma altura, haciendo que el problema antes descripto para Classic Histogram no ocurra, resultando en un error de estimación de la selectividad menor.
 
-El comportamiento de Estimador Grupo será similar a Distribution Steps para las consultas de mayor. En el caso de la igualdad, Estimador Grupo se comporta de manera similar a Classic Histogram, pero no sufre del problema de las columnas altas debido a que todos sus steps tienen igual altura, obteniendo una mejor pérformance en este caso.
+El comportamiento de Estimador Grupo será idéntico a Distribution Steps para las consultas de mayor. En el caso de la igualdad, Estimador Grupo se comporta de manera similar a Classic Histogram, pero no sufre del problema de las columnas altas debido a que todos sus steps tienen igual altura, obteniendo una mejor pérformance en este caso.
 
 Dada las magnitudes posibles de los errores, Distribution Steps debería exhibir un mejor desempeño.
 
@@ -451,8 +446,8 @@ A continuación se ilustran los datasets utilizados durante el análisis de perf
 En las figuras \ref{plot-custom-uniform-greater} y \ref{plot-hist-uniform-equal} se pueden observar valores muy bajos
 en la pérfomance como se predijo en la sección teórica, acompañados de una gran varianza. En ambas figuras, se puede ver como al iniciar con un valor en parámetro bajo,
 la pérformance es más alta, como es de esperarse, ya que, aumentar este valor debería producir una reducción de la pérformance al obtener más precisión.
-Atribuímos la gran varianza y anomalías aparentes, como pequeñas montañas en los gráficos como pueden verse en los
-valores del parámetro 35 y 70 de la figura \ref{plot-hist-uniform-equal} por ejemplo, a errores de punto flotante en el cálculo de la selectividad y en el armado del estimador y al error máximo posible de el cálculo de selectividad por igualdad que puede encontrar alguno de los problemas mencionados en la sección de Análisis teórico.
+Atribuímos la gran varianza y anomalías aparentes como pequeñas montañas en los gráficos como pueden verse en los
+valores del parámetro 35 y 70 de la figura \ref{plot-hist-uniform-equal} por ejemplo, a errores de punto flotante en el cálculo de la selectividad y en el armado del estimador.
 El método de predicción de selectividad elejido para la igualdad genera una pérformance muy baja, obteniéndose resultados satisfactorios y similares para todos los valores probados del parámetro.
 
 \subsubsection{Distribución normal}
@@ -649,8 +644,9 @@ Por lo tanto, si la base de datos va a tener una gran cantidad de actualizacione
 
 
 \section{Conclusiones}
+A lo largo de este trabajo pudimos apreciar distintos maneras de implementar estimadores para la selectividad de las consultas a una base de datos.
+El objetivo del desarollo de los mismos es el de usar la información que proveen para optimizar las consultas a la base y así responder con mayor velocidad. Por lo tantoun requisito fundamental de los estimadores es que su respuesta sea rápida, por lo cual debe realizar calculos simples para obtenerla. Asimismo se espera que la misma sea lo más precisa posible, ya que de caso contrario sería igualmente inútil. Teniendo en cuenta además que si la base sufre cambios en sus valores los estimadores deben adaptarse a ellos para seguir siemdo precisos sin que dicha tarea consuma demasiados recursos que prodrían dedicarse a las búsquedas.
 
-Pendiente.
-
+Planteados éstos requerimientos se pudieron observar distintos enfoques que cumplen en mayor o menor medida con cada uno de ellos. De ésta forma, dependerá en mayor medida de el uso que se le dé a la base de datos y el conocimiento que se tenga sobre los mismos lo que permitirá la correcta elección del estimador que se desee utilizar. Esta decisión deberá ser tomada en cuenta como importante en el momento de puesta en marcha de la base de datos, y a su vez debería ser evaluada luego de pasado un tiempo de uso para  ver si realmente cumple con las expectativas. Si no lo cumpliese o si los requerimientos de la base cambiaran, existe la posibilidad de cambiarlo siempre evaluando el costo que esto implica.
 
 \end{document}
