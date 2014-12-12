@@ -625,8 +625,23 @@ Se traza en los gráficos una línea \textit{dashed} en 0.05 para reflejar el um
 
 \section{Discusión}
 
-Pendiente.
+%En base al analisis previo y la experimentacion realizada sobre los estimadores discutir qu e metodo es mejor para cada tipo de distribucion de datos.
+Luego de realizar las pruebas previamente expuestas y de analizar los resultados arrojados por las mismas pudimos observar que el algoritmo de \textit{Classic Histogram}
+tiene un muy buen comportamiento sólo para la distribución uniforme, pero incluso con valores bajos del parámetro. Por otro lado, para dicha distribución el algoritmo de \textit{Distribution Steps} tiene una performance muy mala para valores bajos del parámetro y luego mejora con valores mayores. Nuestro estimador mejora ese aspecto con respecto al \textit{Distribution Steps}, pero sin llegar a ser como \textit{Classic Histogram}. Por lo tanto para este tipo de distribuciones el de mejor comportameinto es sin dudas el \textit{Classic Histogram}.
 
+Para distribuciones con valores mas irregulares en  cambio, la performance de \textit{Classic Histogram} se degrada mucho y se observa a su vez un aumento de la varianza
+en sus estimaciones. Por otro lado el rendimiento de los otros estimadores se mantiene prácticamente igual que con la distribución uniforme, observándose un mejor comportamiento de las estimaciones por igualdad de nuestro estimador respecto a las de \textit{Distribution Steps}; y el comportamiento inverso para estimaciones por mayor.
+Por estos motivos, para distribuciones más irregulares se toma como mejor el algoritmo de \textit{Distribution Steps} si predominan consultas por mayor y nuestro estimador si las que predominan son las consultas por igualdad. Asimismo, para el caso general, o con una distribución desconocida, sería mejor tambien utilizarlos de la misma manera, ya que su performance se mantiene de forma bastante independiente respecto a la distibución de los datos.
+%Comentar si existe un m etodo que se comporte mejor para el caso general (un dataset con distribuci ́on desconocida).
+%Discutir qúe otros factores hay que tener en cuenta para emplear los estimadores, por ejemplo, tiempo de construcci ́on, costo de mantenimiento, etc.
+
+Otros factores a tener en cuenta para la utilización de los estimadores son, por ejemplo, el tiempo de construcción y el costo de mantenimiento del mismo.
+En el caso del \textit{Classic Histogram}, el costo de construcción es bastante bajo, básicamente se realiza una consulta que cuenta la cantidad de registros cuyo valor está en determinado rango, para cada uno de los rangos de valores correspondientes a las barras del histograma. Luego para actualizarlo en caso de inserción o borrado se sumo o resta 1 a la columna a la cual corresponde el valor correspondiente a ese registro.
+Esto supone un costo muy bajo tanto de creación como de mantenimiento.
+
+Por el otro lado, para construir las estructuras de los otros estimadores primero se debe ordenar la tabla entera y luego ir leyendo todos los registros de la bloques. esto supone un costo mucho mas alto de construcción. Además al momento de actualizar si se quiere mantener igualado la altura de las barras se deben recomputar todo periódicamente, ya que sólo se almacenan los valores mínimos de cada step.
+
+Por lo tanto, si la base de datos va a tener una gran cantidad de actualizaciones puede que el uso de histogramas de barras de igual altura se haga insostenible.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Conclusiones                                                               %%
