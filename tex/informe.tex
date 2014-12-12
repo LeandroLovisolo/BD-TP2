@@ -449,7 +449,7 @@ A continuación se ilustran los datasets utilizados durante el análisis de perf
         {plot-hist-uniform-greater}
 
 En las figuras \ref{plot-custom-uniform-greater} y \ref{plot-hist-uniform-equal} se pueden observar valores muy bajos
-en la pérfomance, acompañados de una gran varianza. En ambas figuras, se puede ver como al iniciar con un valor en parámetro bajo,
+en la pérfomance como se predijo en la sección teórica, acompañados de una gran varianza. En ambas figuras, se puede ver como al iniciar con un valor en parámetro bajo,
 la pérformance es más alta, como es de esperarse, ya que, aumentar este valor debería producir una reducción de la pérformance al obtener más precisión.
 Atribuímos la gran varianza y anomalías aparentes, como pequeñas montañas en los gráficos como pueden verse en los
 valores del parámetro 35 y 70 de la figura \ref{plot-hist-uniform-equal} por ejemplo, a errores de punto flotante en el cálculo de la selectividad y en el armado del estimador y al error máximo posible de el cálculo de selectividad por igualdad que puede encontrar alguno de los problemas mencionados en la sección de Análisis teórico.
@@ -469,12 +469,9 @@ Las figuras \ref{plot-hist-normal-equal} y \ref{plot-hist-normal-greater} de sel
 de pérfomance que implica analizar la distribución normal con este estimador.
 
 Como se vió en el análisis teórico anteriormente, la búsqueda de selectividad por mayor, que podía obtener un error máximo 
-alto en la selectividad en esta distribución, en especial con valores del parámetro bajo, muestra en la figura \ref{plot-hist-normal-greater} una pérfomance alta 
-que decrece contínuamente a medida que se incrementa el valor del parámetro, como era de esperarse, debido a que intervalos más chicos implican 
-mayor precisión en la selectividad por mayor.
+alto en la selectividad en esta distribución, en especial con valores del parámetro bajo como muestra en la figura \ref{plot-hist-normal-greater} una pérfomance de valor alto, que decrece contínuamente a medida que se incrementa el valor del parámetro, como era de esperarse, debido a que una reducción en el tamaño de los intervalos implica mayor precisión en la selectividad por mayor.
 
-Por el lado de la igualdad, se muestra una pérfomance alta con un varianza alta con valores bajos del parámetro a comparación de la figura \ref{plot-hist-uniform-equal} 
-donde se utiliza una distribución uniforme. Sin embargo, con sucesivos incrementos en el parámetro, el aumento se precisión evidencia una mejora notable.   
+Por el lado de la igualdad, se muestran valores de pérfomance altos, con un varianza alta al utilizar valores bajos del parámetro a comparación de la figura \ref{plot-hist-uniform-equal} donde se utiliza una distribución uniforme. Sin embargo, con sucesivos incrementos en el parámetro, el aumento se precisión evidencia una mejora notable.   
 
 \subsection{Estimador \texttt{DistributionSteps}}
 
@@ -486,11 +483,11 @@ donde se utiliza una distribución uniforme. Sin embargo, con sucesivos incremen
 \grafico{plot-diststep-uniform-greater}
         {Distribución uniforme, consulta por mayor.}
         {plot-diststep-uniform-greater}
-De la observación de los resultados presentados en las figuras \ref{plot-diststep-uniform-equal}, \ref{plot-diststep-uniform-greater} se deduce que un valor bajo del parámetro implica una pérfomance alta a comparación de la pérfomance obtenida al 
-incrementar el parámetro. La curva de pérfomance es de carácter logarítmico inverso, siendo las diferencias en pérfomance más bajas
-al aproximarse a la selectividad correcta.
-Además el cálculo de igualdad obtiene una mejor aproximación a la selectividad real 
-que para el cálculo de la selectividad por mayor.
+De la observación de los resultados presentados en las figuras \ref{plot-diststep-uniform-equal}, \ref{plot-diststep-uniform-greater} se deduce que un valor bajo del parámetro implica valores de pérfomance altos a comparación de la pérfomance obtenida al 
+incrementar el parámetro. La curva de pérfomance es de carácter logarítmico inverso, consiguiéndose menor decremento del valor del pérfomance al aproximarse a la selectividad correcta.
+
+Además de esto, podemos notar que el cálculo de igualdad obtiene una mejor aproximación a la selectividad real que el cálculo de la selectividad por mayor.
+
 \subsubsection{Distribución normal}    
 \grafico{plot-diststep-normal-equal}
         {Distribución normal, consulta por igualdad.}
@@ -499,8 +496,7 @@ que para el cálculo de la selectividad por mayor.
         {Distribución normal, consulta por mayor.}
         {plot-diststep-normal-greater}
 
-A partir de las figuras \ref{plot-diststep-normal-equal}, \ref{plot-diststep-normal-greater} se puede ver que no hay casi diferencia entre utilizar el estimador 
-en una distribución normal o en una distribución uniforme. En ambas distribuciones, se tiene un comportamiento tanto en la performance como la varianza muy similar.
+A partir de las figuras \ref{plot-diststep-normal-equal}, \ref{plot-diststep-normal-greater} y comparándolas con las figuras \ref{plot-diststep-uniform-equal} y \ref{plot-diststep-uniform-greater} se puede notar, como se predijo en la sección teórica, que no hay casi diferencia entre utilizar el estimador en una distribución normal o en una distribución uniforme. En ambas distribuciones, se tiene un comportamiento tanto en la performance como la varianza muy similar.
 
 \subsection{Estimador \texttt{EstimadorGrupo}}
 
