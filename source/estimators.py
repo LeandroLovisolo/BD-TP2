@@ -94,16 +94,17 @@ class ClassicHistogram(Estimator):
         #print 'Bucket numero: ' + str(bucket)
         #print '[bucket][0]: ' + str(self.bucket_ranges[bucket][0]) + '[bucket][1]' + str(self.bucket_ranges[bucket][1])
         #print '[bucket][1] - value: ' + str(self.bucket_ranges[bucket][1] - value)
-        factor = float(self.bucket_ranges[bucket][1] - value) / self.step
+        factor = self.bucket_ranges[bucket][1] - value / self.step
         #print 'Factor: ' + str(factor)
         
-        greater = float(self.buckets[bucket]) * factor
+        #greater = float(self.buckets[bucket]) * factor
+        greater = self.buckets[bucket] * 0.5
         #print 'Greater inicial: ' + str(greater)
         #greater = float(self.buckets[bucket]) / 2
         for i in range(bucket + 1, len(self.buckets)):
             greater += self.buckets[i]
         #print 'Greater: ' + str(greater)
-        return greater / self.total - self.estimate_equal(value)
+        return greater / self.total - self.estimate_equal(value) / 2
 
 class DistributionSteps(Estimator):
     def build_struct(self):
@@ -120,19 +121,18 @@ class DistributionSteps(Estimator):
 
         c.execute('SELECT %s FROM %s ORDER BY %s ASC' % (self.column, self.table, self.column))
 
-        for current_step in range(1, self.num_steps + 1):
-            if current_step == self.num_steps:
+        for current_step in range(0, self.num_steps):
+            if current_step == self.num_steps -1 :
                 rows = c.fetchall()
+                self.steps[self.num_steps] = rows[-1][0]
             else:
                 rows = c.fetchmany(self.items_per_step)
-            if current_step == 1:
-                self.steps[0] = rows[0][0]
-            self.steps[current_step] = rows[-1][0]
+            self.steps[current_step] = rows[0][0]
 
     def estimate_equal(self, value):
         if value < self.steps[0]:
             return 0
-        if value > self.steps[self.num_steps]:
+        if value >= self.steps[self.num_steps]:
             return 0
 
         for step in xrange(self.num_steps + 1):
