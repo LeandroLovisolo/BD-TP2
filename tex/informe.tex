@@ -308,6 +308,9 @@ pero intentando mejorar principalmente el estimador por igualdad, ya que con una
 grupo y generalmente el estimar que 1/3 de ellos son iguales al valor que buscamos trae un error muy grande.
 Por lo tanto para estimar la cantidad de elementos iguales a uno dado ,en el caso en que éste no coincida con el límite inferior de un intervalo, se aproxima dividiendo la cantidad de elementos del step
 (la cual siempre es la misma) por el rango de valores del step, y luego ésto por la cantidad total de elementos de la base.
+En el caso que coincide con sólo un límite inferior, y éste no es el primero ni el último, se toma como si tanto el intervalo anterior como el que representa fueran uno sólo y se realiza el calculo de la misma forma que el primer caso.
+
+El resto de los casos se realizan de forma similar al distribution steps.
 
 \begin{verbatim}
 def estimate_equal(self, value):
@@ -321,7 +324,8 @@ def estimate_equal(self, value):
                 return self.items_per_step/ step_range / self.total
             elif self.steps[step] == value:
                 if 0 < step < self.num_steps and self.steps[step+1] != value:
-                    return 1.0 / self.total
+                    steps_range = self.steps[step+1] - self.steps[step-1]
+                    return self.items_per_step * 2.0 / steps_range / self.total
                 else:
                     k = 0
                     while len(self.steps) > step + k + 1 and self.steps[step+k+1] == value:
@@ -463,13 +467,20 @@ donde se utiliza una distribución uniforme. Sin embargo, con sucesivos incremen
 
 \subsection{Estimador \texttt{DistributionSteps}}
 
+
+\subsubsection{Distribución uniforme}
 \grafico{plot-diststep-uniform-equal}
         {Distribución uniforme, consulta por igualdad.}
         {plot-diststep-uniform-equal}
 \grafico{plot-diststep-uniform-greater}
         {Distribución uniforme, consulta por mayor.}
         {plot-diststep-uniform-greater}
-
+De la observación de los resultados presentados en las figuras \ref{plot-diststep-uniform-equal}, \ref{plot-diststep-uniform-greater} se deduce que un valor bajo del parámetro implica una pérfomance alta a comparación de la pérfomance obtenida al 
+incrementar el parámetro. La curva de pérfomance es de carácter logarítmico inverso, siendo las diferencias en pérfomance más bajas
+al aproximarse a la selectividad correcta.
+Además el cálculo de igualdad obtiene una mejor aproximación a la selectividad real 
+que para el cálculo de la selectividad por mayor.
+\subsubsection{Distribución normal}    
 \grafico{plot-diststep-normal-equal}
         {Distribución normal, consulta por igualdad.}
         {plot-diststep-normal-equal}
@@ -477,18 +488,12 @@ donde se utiliza una distribución uniforme. Sin embargo, con sucesivos incremen
         {Distribución normal, consulta por mayor.}
         {plot-diststep-normal-greater}
 
-De la observación de los resultados presentados en las figuras \ref{plot-diststep-uniform-equal}, \ref{plot-diststep-uniform-greater}, 
-\ref{plot-diststep-normal-equal}, \ref{plot-diststep-normal-greater} se puede ver que no hay casi diferencia entre utilizar el estimador 
-en una distribución normal o en una distribución uniforme.
-
-En ambas distribuciones, un valor bajo del parámetro implica una pérfomance alta a comparación de la pérfomance obtenida al 
-incrementar el parámetro. La curva de pérfomance es de carácter logarítmico inverso, siendo las diferencias en pérfomance más bajas
-al aproximarse a la selectividad correcta.
-
-Por último, puede notarse que en ambas distribuciones, el cálculo de igualdad obtiene una mejor aproximación a la selectividad real 
-que para el cálculo de la selectividad por mayor.
+A partir de las figuras \ref{plot-diststep-normal-equal}, \ref{plot-diststep-normal-greater} se puede ver que no hay casi diferencia entre utilizar el estimador 
+en una distribución normal o en una distribución uniforme. En ambas distribuciones, se tiene un comportamiento tanto en la performance como la varianza muy similar.
 
 \subsection{Estimador \texttt{EstimadorGrupo}}
+
+\subsubsection{Distribución uniforme}
 
 \grafico{plot-custom-uniform-equal}
         {Distribución uniforme, consulta por igualdad.}
@@ -496,6 +501,13 @@ que para el cálculo de la selectividad por mayor.
 \grafico{plot-custom-uniform-greater}
         {Distribución uniforme, consulta por mayor.}
         {plot-custom-uniform-greater}
+
+En las figuras \ref{plot-custom-uniform-equal} podemos observar que la mejora en las consultas por igualdad es notable respecto a distribution steps, 
+sobre todo para valores bajos del parámetro con ésta distribución. Si bien se nota que tiene una varianza basatante alta con los primeros valores, ésta se reduce en gran medida para valores mas altos.
+Por su parte, en \ref{plot-custom-uniform-greater} podemos ver que para consultas por mayor el rendimiento es bastante similar que distribution steps en este caso, pero la varianza se mantiene siempre alta.
+
+\subsubsection{Distribución normal}        
+
 \grafico{plot-custom-normal-equal}
         {Distribución normal, consulta por igualdad.}
         {plot-custom-normal-equal}
@@ -503,6 +515,7 @@ que para el cálculo de la selectividad por mayor.
         {Distribución normal, consulta por mayor.}
         {plot-custom-normal-greater}
 
+Luego de comparar las figuras \ref{plot-custom-normal-equal} y \ref{plot-custom-normal-greater} con las correspondientes a la distribución uniforme(\ref{plot-custom-uniform-equal} y \ref{plot-custom-uniform-greater}) podemos ver que al igual que el distribution steps, el comportamiento de este algoritmo es muy similar para ambas distribuciones.
 
 \subsection{Datasets provistos por la cátedra}
 
