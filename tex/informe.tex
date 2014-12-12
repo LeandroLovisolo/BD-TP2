@@ -301,11 +301,62 @@ def estimate_lower(self, value):
 \subsection{Estimador Grupo}
 
 En este estimador se busca aprovechar el tipo de histograma que se arma con distribution steps,
-pero se busca mejorar el estimador por igualdad, ya que con una cantidad baja de steps, quedan muchos registros por
-grupo y generalmente estimar que 1/3 de ellos son iguales al valor que buscamos trae un error muy grande.
-Por lo tanto para estimar la cantidad de elementos iguales a uno dado se divide la cantidad de elementos del step
-(siempre es la misma) por el rango de valores del step y luego ésto por la cantidad total de elementos de la base.
-El estimador por mayor valor funciona de forma similar al de distribution steps.
+pero intentando mejorar principalmente el estimador por igualdad, ya que con una cantidad baja de steps la estimación es bastante grosera, ya que quedan muchos registros por
+grupo y generalmente el estimar que 1/3 de ellos son iguales al valor que buscamos trae un error muy grande.
+Por lo tanto para estimar la cantidad de elementos iguales a uno dado ,en el caso en que éste no coincida con el límite inferior de un intervalo, se aproxima dividiendo la cantidad de elementos del step
+(la cual siempre es la misma) por el rango de valores del step, y luego ésto por la cantidad total de elementos de la base.
+
+\begin{verbatim}
+def estimate_equal(self, value):
+        if value < self.steps[0]:
+            return 0
+        if value > self.steps[self.num_steps]:
+            return 0
+        for step in xrange(self.num_steps+1):
+            if self.steps[step] > value:
+                step_range = self.steps[step] - self.steps[step-1] +1
+                return self.items_per_step/ step_range / self.total
+            elif self.steps[step] == value:
+                if 0 < step < self.num_steps and self.steps[step+1] != value:
+                    return 1.0 / self.total
+                else:
+                    k = 0
+                    while len(self.steps) > step + k + 1 and self.steps[step+k+1] == value:
+                        k += 1
+                    if 0 < step and self.steps[self.num_steps] != value:
+                        return float(k) / self.num_steps
+                    else:
+                        return float((k - 0.5) / self.num_steps)
+
+\end{verbatim}
+
+El estimador por mayor valor funciona de forma similar para el caso en que el valor no coincide con el límite inferior de algún intervalo, aproximando linealmente la cantidad de elementos menores al valor dentro del intervalo. Ésto se realiza calculando la diferencia del valor con el límite inferior del intervalo y luego dividiendo ésto por el rango de valores dentro del intervalo.
+
+Además en todos los casos, para preservar la propiedad de consistencia, se modificaron los calculos restando directamente la mitad del valor de la estimación por igual.
+
+\begin{verbatim}
+    def estimate_lower(self, value):
+        if value < self.steps[0]:
+            return 0
+        if value > self.steps[self.num_steps]:
+            return self.total
+        for step in [0, self.num_steps+1):
+            if self.steps[step] > value:
+                step_range = self.steps[step] - self.steps[step-1] + 1
+                factor = float(value - self.steps[step-1]) / step_range
+                return (step + factor) / self.num_steps - self.estimate_equal(value) / 2
+            elif self.steps[step] == value:
+                if 0 < step < self.num_steps and self.steps[step+1] != value:
+                    return float(step) / self.num_steps - self.estimate_equal(value) / 2
+                else:
+                    k = 0
+                    while len(self.steps) > step + k + 1 and self.steps[step+k+1] == value:
+                        k += 1
+                    if 0 < step and self.steps[self.num_steps] != value:
+                        return float(step) / self.num_steps - self.estimate_equal(value) / 2
+                    else:
+                         return 1 - float(k) / self.num_steps - self.estimate_equal(value) / 2                       
+\end{verbatim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Análisis Teório                                                            %%
