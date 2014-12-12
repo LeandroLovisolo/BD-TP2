@@ -218,7 +218,8 @@ class EstimadorGrupo(DistributionSteps):
                 #CASE B/C: equal to steps
                 if 0 < step < self.num_steps and self.steps[step+1] != value:
                     #CASE B1: equal to ONE step and it's NOT FIRST OR LAST
-                    return 1.0 / self.total
+                    steps_range = self.steps[step+1] - self.steps[step-1]
+                    return self.items_per_step * 2.0 / steps_range / self.total
                 else:
                     k = 0
                     while len(self.steps) > step + k + 1 and self.steps[step+k+1] == value:
